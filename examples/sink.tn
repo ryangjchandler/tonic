@@ -1,0 +1,27 @@
+let name = "Ryan"
+
+fn main() {
+    return 123 + 123
+}
+
+while true {
+    break
+}
+
+while false {
+    continue
+}
+
+if false {
+
+} else {
+    
+}
+
+if true {
+
+} else if false {
+
+} else {
+
+}

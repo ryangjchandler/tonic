@@ -22,6 +22,15 @@ fn main() {
         println!("{}", HELP);
         exit(0);
     }
+
+    let source = source();
+
+    let mut parser = Parser::new(Lexer::new(&source[..]));
+    let ast = parser.parse();
+
+    println!("Program:");
+
+    dbg!(&ast);
 }
 
 fn show_help() -> bool {
@@ -31,6 +40,12 @@ fn show_help() -> bool {
         Some(arg) => matches!(&arg[..], "--help" | "-h"),
         None => false
     }
+}
+
+fn source() -> String {
+    let source = std::env::args().nth(1).unwrap();
+
+    std::fs::read_to_string(source).unwrap()
 }
 
 fn exit(code: i32) -> ! {

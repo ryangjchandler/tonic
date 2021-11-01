@@ -33,7 +33,6 @@ impl<'p> Parser<'p> {
                 }
 
                 self.read();
-                self.expect(TokenKind::SemiColon);
 
                 Statement::Break
             },
@@ -43,7 +42,6 @@ impl<'p> Parser<'p> {
                 }
 
                 self.read();
-                self.expect(TokenKind::SemiColon);
 
                 Statement::Continue
             },
@@ -52,14 +50,10 @@ impl<'p> Parser<'p> {
 
                 let expression = self.expression(0);
 
-                self.expect(TokenKind::SemiColon);
-
                 Statement::Return { expression }
             },
             _ => {
                 let statement = Statement::Expression { expression: self.expression(0) };
-                
-                self.expect(TokenKind::SemiColon);
                 
                 statement
             },
@@ -75,8 +69,6 @@ impl<'p> Parser<'p> {
         self.expect(TokenKind::Equals);
 
         let statement = Statement::Let { identifier, r#type, initial: self.expression(0) };
-
-        self.expect(TokenKind::SemiColon);
 
         statement
     }
@@ -120,11 +112,17 @@ impl<'p> Parser<'p> {
 
         if self.current.kind == TokenKind::Else {
             self.read();
-            self.expect(TokenKind::LeftBrace);
 
-            otherwise = self.block(TokenKind::RightBrace);
+            // If we see another `if` token, then we're going to parse an `else if` statement.
+            if self.current.kind == TokenKind::If {
+                otherwise = vec![self.parse_if()];
+            } else {
+                self.expect(TokenKind::LeftBrace);
 
-            self.expect(TokenKind::RightBrace);
+                otherwise = self.block(TokenKind::RightBrace);
+
+                self.expect(TokenKind::RightBrace);
+            }
         }
 
         Statement::If { condition, then, otherwise }
@@ -330,6 +328,9 @@ impl<'p> Parser<'p> {
 
     pub fn parse(&mut self) -> Program {
         let mut program = Vec::new();
+
+        self.read();
+        self.read();
 
         while self.current.kind != TokenKind::Eof {
             program.push(self.parse_statement());
