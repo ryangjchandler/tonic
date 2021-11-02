@@ -31,22 +31,23 @@ fn main() {
         Err(ParserError { line, span, err }) => {
             Report::build(ReportKind::Error, &filename, line)
                 .with_message(match err {
-                    ParserErrorType::InvalidBreakableScope => "",
+                    ParserErrorType::InvalidBreakableScope => "`break` statements can only be used inside of `while` structures.",
+                    ParserErrorType::InvalidContinuableScope => "`continue` statements can only be used inside of `while` structures.",
                     _ => unimplemented!(),
                 })
                 .with_code(match err {
                     ParserErrorType::InvalidBreakableScope => 032,
+                    ParserErrorType::InvalidContinuableScope => 033,
                     _ => unimplemented!(),
                 })
                 .with_label(
                     Label::new((&filename, span.0 - 1 .. span.1))
-                        .with_message("Not inside of breakable structure.")
+                        .with_message(match err {
+                            ParserErrorType::InvalidBreakableScope => "not inside of breakable structure.",
+                            ParserErrorType::InvalidContinuableScope => "not inside of continuable structure.",
+                        })
                         .with_color(Color::Red)
                 )
-                .with_note(match err {
-                    ParserErrorType::InvalidBreakableScope => "`break` statements can only be used inside of `while` structures.",
-                    _ => unimplemented!(),
-                })
                 .finish()
                 .print((&filename, Source::from(source)))
                 .unwrap();
