@@ -13,7 +13,7 @@ pub use r#type::Type;
 pub use parser::{Parser, ParserError, ParserErrorType};
 use ariadne::{Report, ReportKind, Label, Source, Color};
 
-const HELP: &'static str = "Tonic v0.1.0
+const HELP: &str = "Tonic v0.1.0
 
 usage: 
     tonic <file>";
@@ -44,10 +44,10 @@ fn main() {
                     _ => unimplemented!(),
                 })
                 .with_code(match err {
-                    ParserErrorType::InvalidBreakableScope => 032,
-                    ParserErrorType::InvalidContinuableScope => 033,
-                    ParserErrorType::UnexpectedToken(..) => 001,
-                    ParserErrorType::ExpectedIdentifier => 002,
+                    ParserErrorType::InvalidBreakableScope => 32,
+                    ParserErrorType::InvalidContinuableScope => 33,
+                    ParserErrorType::UnexpectedToken(..) => 1,
+                    ParserErrorType::ExpectedIdentifier => 2,
                     _ => unimplemented!(),
                 })
                 .with_label(
@@ -85,7 +85,7 @@ fn source() -> (String, String) {
     let source = std::env::args().nth(1).unwrap();
     let path = std::path::Path::new(&source).file_name().unwrap().to_str().unwrap();
 
-    (format!("{}", path), std::fs::read_to_string(source).unwrap())
+    (path.to_string(), std::fs::read_to_string(source).unwrap())
 }
 
 fn exit(code: i32) -> ! {

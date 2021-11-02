@@ -70,9 +70,7 @@ impl<'p> Parser<'p> {
                 Statement::Return { expression }
             },
             _ => {
-                let statement = Statement::Expression { expression: self.expression(0)? };
-                
-                statement
+                Statement::Expression { expression: self.expression(0)? }
             },
         })
     }
