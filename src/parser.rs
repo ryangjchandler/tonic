@@ -461,7 +461,7 @@ mod tests {
         assert_eq!(parse("let name = 1"), vec![
             Statement::Let {
                 identifier: String::from("name"),
-                r#type: None,
+                r#type: Some(Type::Number),
                 initial: Expression::Number(1.0),
             },
         ]);
@@ -540,7 +540,7 @@ mod tests {
                 ],
                 return_type: Some(Type::String),
                 body: vec![
-                    Statement::Let { identifier: String::from("name"), r#type: None, initial: Expression::String("testing".into()) },
+                    Statement::Let { identifier: String::from("name"), r#type: Some(Type::String), initial: Expression::String("testing".into()) },
                 ],
             }
         ]);
@@ -581,7 +581,7 @@ mod tests {
             Statement::If {
                 condition: Expression::Bool(true),
                 then: vec![
-                    Statement::Let { identifier: String::from("age"), r#type: None, initial: Expression::Number(1.0) }
+                    Statement::Let { identifier: String::from("age"), r#type: Some(Type::Number), initial: Expression::Number(1.0) }
                 ],
                 otherwise: vec![],
             }
@@ -598,7 +598,7 @@ mod tests {
                 condition: Expression::Bool(true),
                 then: vec![],
                 otherwise: vec![
-                    Statement::Let { identifier: String::from("age"), r#type: None, initial: Expression::Number(1.0) }
+                    Statement::Let { identifier: String::from("age"), r#type: Some(Type::Number), initial: Expression::Number(1.0) }
                 ],
             }
         ]);
@@ -785,11 +785,7 @@ mod tests {
 
     fn parse(source: &str) -> Program {
         let lexer = Lexer::new(source);
-        let mut parser = Parser::new(lexer);
 
-        parser.read();
-        parser.read();
-
-        parser.parse().unwrap()
+        Parser::new(lexer).parse().unwrap()
     }
 }
