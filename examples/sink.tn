@@ -1,4 +1,5 @@
 let name = "Ryan"
+let age = 100
 
 fn main() {
     return 123 + 123

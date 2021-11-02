@@ -64,13 +64,20 @@ impl<'p> Parser<'p> {
         self.read();
 
         let identifier = self.identifier();
-        let r#type = self.r#type();
+        let mut r#type = self.r#type();
 
         self.expect(TokenKind::Equals);
 
-        let statement = Statement::Let { identifier, r#type, initial: self.expression(0) };
+        let expression = self.expression(0);
 
-        statement
+        match expression {
+            Expression::String(_) => r#type = Some(Type::String),
+            Expression::Number(_) => r#type = Some(Type::Number),
+            Expression::Bool(_) => r#type = Some(Type::Bool),
+            _ => (),
+        };
+
+        Statement::Let { identifier, r#type, initial: expression }
     }
 
     fn parse_fn(&mut self) -> Statement {
