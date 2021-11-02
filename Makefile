@@ -4,7 +4,7 @@ default:
 	cargo run --release
 
 test:
-	cargo test --lib
+	cargo test
 
 sink:
 	cargo run -- ./examples/sink.tn
