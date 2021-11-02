@@ -13,6 +13,7 @@ pub struct ParserError {
 pub enum ParserErrorType {
     InvalidBreakableScope,
     InvalidContinuableScope,
+    UnexpectedToken(String, Option<String>),
 }
 
 type BindingPower = u8;
@@ -38,7 +39,7 @@ impl<'p> Parser<'p> {
 
     fn parse_statement(&mut self) -> ParserResult<Statement> {
         Ok(match self.current.kind {
-            TokenKind::Let => self.parse_let(),
+            TokenKind::Let => self.parse_let()?,
             TokenKind::Fn => self.parse_fn()?,
             TokenKind::If => self.parse_if()?,
             TokenKind::While => self.parse_while()?,
@@ -63,27 +64,27 @@ impl<'p> Parser<'p> {
             TokenKind::Return => {
                 self.read();
 
-                let expression = self.expression(0);
+                let expression = self.expression(0)?;
 
                 Statement::Return { expression }
             },
             _ => {
-                let statement = Statement::Expression { expression: self.expression(0) };
+                let statement = Statement::Expression { expression: self.expression(0)? };
                 
                 statement
             },
         })
     }
 
-    fn parse_let(&mut self) -> Statement {
+    fn parse_let(&mut self) -> ParserResult<Statement> {
         self.read();
 
         let identifier = self.identifier();
         let mut r#type = self.r#type();
 
-        self.expect(TokenKind::Equals);
+        self.expect(TokenKind::Equals)?;
 
-        let expression = self.expression(0);
+        let expression = self.expression(0)?;
 
         match expression {
             Expression::String(_) => r#type = Some(Type::String),
@@ -92,7 +93,7 @@ impl<'p> Parser<'p> {
             _ => (),
         };
 
-        Statement::Let { identifier, r#type, initial: expression }
+        Ok(Statement::Let { identifier, r#type, initial: expression })
     }
 
     fn parse_fn(&mut self) -> ParserResult<Statement> {
@@ -100,19 +101,19 @@ impl<'p> Parser<'p> {
 
         let identifier = self.identifier();
 
-        self.expect(TokenKind::LeftParen);
+        self.expect(TokenKind::LeftParen)?;
 
         let parameters = self.parameters();
 
-        self.expect(TokenKind::RightParen);
+        self.expect(TokenKind::RightParen)?;
 
         let return_type = self.r#type();
 
-        self.expect(TokenKind::LeftBrace);
+        self.expect(TokenKind::LeftBrace)?;
 
         let body = self.block(TokenKind::RightBrace)?;
 
-        self.expect(TokenKind::RightBrace);
+        self.expect(TokenKind::RightBrace)?;
 
         Ok(Statement::Function {
             identifier, parameters, return_type, body
@@ -122,13 +123,13 @@ impl<'p> Parser<'p> {
     fn parse_if(&mut self) -> ParserResult<Statement> {
         self.read();
 
-        let condition = self.expression(0);
+        let condition = self.expression(0)?;
 
-        self.expect(TokenKind::LeftBrace);
+        self.expect(TokenKind::LeftBrace)?;
 
         let then = self.block(TokenKind::RightBrace)?;
 
-        self.expect(TokenKind::RightBrace);
+        self.expect(TokenKind::RightBrace)?;
 
         let mut otherwise = Vec::new();
 
@@ -139,11 +140,11 @@ impl<'p> Parser<'p> {
             if self.current.kind == TokenKind::If {
                 otherwise = vec![self.parse_if()?];
             } else {
-                self.expect(TokenKind::LeftBrace);
+                self.expect(TokenKind::LeftBrace)?;
 
                 otherwise = self.block(TokenKind::RightBrace)?;
 
-                self.expect(TokenKind::RightBrace);
+                self.expect(TokenKind::RightBrace)?;
             }
         }
 
@@ -153,28 +154,32 @@ impl<'p> Parser<'p> {
     fn parse_while(&mut self) -> ParserResult<Statement> {
         self.read();
 
-        let condition = self.expression(0);
+        let condition = self.expression(0)?;
 
-        self.expect(TokenKind::LeftBrace);
+        self.expect(TokenKind::LeftBrace)?;
+        
         self.in_breakable_scope = true;
 
         let then = self.block(TokenKind::RightBrace)?;
 
-        self.expect(TokenKind::RightBrace);
+        self.expect(TokenKind::RightBrace)?;
+
         self.in_breakable_scope = false;
 
         Ok(Statement::While { condition, then })
     }
 
-    fn expect(&mut self, kind: TokenKind) {
+    fn expect(&mut self, kind: TokenKind) -> ParserResult<()> {
         if kind == self.current.kind {
             self.read();
+
+            Ok(())
         } else {
-            panic!("Expectation failed. {:?}", kind)
+            return Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::UnexpectedToken(stringify!(self.current.kind).to_string(), Some(stringify!(kind).to_string())) })
         }
     }
 
-    fn expression(&mut self, bp: u8) -> Expression {
+    fn expression(&mut self, bp: u8) -> ParserResult<Expression> {
         let mut lhs = match self.current.kind.clone() {
             TokenKind::Number(n) => {
                 self.read();
@@ -207,14 +212,14 @@ impl<'p> Parser<'p> {
                 let mut items = Vec::new();
 
                 while self.current.kind != TokenKind::RightBracket {
-                    items.push(self.expression(0));
+                    items.push(self.expression(0)?);
 
                     if self.current.kind == TokenKind::Comma {
                         self.read();
                     }
                 }
 
-                self.expect(TokenKind::RightBracket);
+                self.expect(TokenKind::RightBracket)?;
 
                 Expression::Array(items)
             },
@@ -225,7 +230,7 @@ impl<'p> Parser<'p> {
 
                 let (_, rbp) = prefix_binding_power(&kind);
 
-                let rhs = self.expression(rbp);
+                let rhs = self.expression(rbp)?;
 
                 prefix(&kind, rhs)
             },
@@ -246,7 +251,7 @@ impl<'p> Parser<'p> {
 
                 self.read();
 
-                lhs = postfix(self, lhs, &op);
+                lhs = postfix(self, lhs, &op)?;
 
                 continue;
             }
@@ -258,7 +263,7 @@ impl<'p> Parser<'p> {
 
                 self.read();
 
-                let rhs = self.expression(rbp);
+                let rhs = self.expression(rbp)?;
 
                 lhs = infix(lhs, &op, rhs);
 
@@ -268,7 +273,7 @@ impl<'p> Parser<'p> {
             break;
         }
 
-        lhs
+        Ok(lhs)
     }
 
     fn identifier(&mut self) -> String {
@@ -281,7 +286,7 @@ impl<'p> Parser<'p> {
         }
     }
 
-    fn args(&mut self) -> Vec<Expression> {
+    fn args(&mut self) -> ParserResult<Vec<Expression>> {
         let mut args = Vec::new();
 
         loop {
@@ -289,7 +294,7 @@ impl<'p> Parser<'p> {
                 break;
             }
 
-            let expression = self.expression(0);
+            let expression = self.expression(0)?;
 
             args.push(expression);
 
@@ -298,7 +303,7 @@ impl<'p> Parser<'p> {
             }
         }
 
-        args
+        Ok(args)
     }
 
     fn parameters(&mut self) -> Vec<Parameter> {
@@ -402,21 +407,21 @@ fn postfix_binding_power(kind: &TokenKind) -> Option<(BindingPower, ())> {
     })
 }
 
-fn postfix(parser: &mut Parser, lhs: Expression, kind: &TokenKind) -> Expression {
+fn postfix(parser: &mut Parser, lhs: Expression, kind: &TokenKind) -> ParserResult<Expression> {
     match kind {
         TokenKind::LeftParen => {
-            let args = parser.args();
+            let args = parser.args()?;
 
             parser.read();
 
-            Expression::Call(lhs.boxed(), args)
+            Ok(Expression::Call(lhs.boxed(), args))
         },
         TokenKind::LeftBracket => {
-            let property = parser.expression(0);
+            let property = parser.expression(0)?;
 
-            parser.expect(TokenKind::RightBracket);
+            parser.expect(TokenKind::RightBracket)?;
 
-            Expression::GetProperty(lhs.boxed(), property.boxed())
+            Ok(Expression::GetProperty(lhs.boxed(), property.boxed()))
         },
         _ => todo!()
     }
@@ -429,7 +434,7 @@ mod tests {
 
     #[test]
     fn arrays() {
-        assert_eq!(parse("[1, 2, 3,];"), vec![
+        assert_eq!(parse("[1, 2, 3,]"), vec![
             Statement::Expression {
                 expression: Expression::Array(vec![
                     Expression::Number(1.0),
@@ -439,7 +444,7 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("[1][0];"), vec![
+        assert_eq!(parse("[1][0]"), vec![
             Statement::Expression {
                 expression: Expression::GetProperty(
                     Expression::Array(vec![
@@ -453,7 +458,7 @@ mod tests {
 
     #[test]
     fn let_statements() {
-        assert_eq!(parse("let name = 1;"), vec![
+        assert_eq!(parse("let name = 1"), vec![
             Statement::Let {
                 identifier: String::from("name"),
                 r#type: None,
@@ -461,7 +466,7 @@ mod tests {
             },
         ]);
 
-        assert_eq!(parse("let name: number = 1;"), vec![
+        assert_eq!(parse("let name: number = 1"), vec![
             Statement::Let {
                 identifier: String::from("name"),
                 r#type: Some(Type::Number),
@@ -525,7 +530,7 @@ mod tests {
 
         assert_eq!(parse(r##"
             fn name(hello: string) :: string {
-                let name = "testing";
+                let name = "testing"
             }"##
         ), vec![
             Statement::Function {
@@ -543,7 +548,7 @@ mod tests {
 
     #[test]
     fn returns() {
-        assert_eq!(parse("return true;"), vec![
+        assert_eq!(parse("return true"), vec![
             Statement::Return {
                 expression: Expression::Bool(true),
             }
@@ -570,7 +575,7 @@ mod tests {
 
         assert_eq!(parse("
             if true {
-                let age = 1;
+                let age = 1
             }
         "), vec![
             Statement::If {
@@ -586,7 +591,7 @@ mod tests {
             if true {
 
             } else {
-                let age = 1;
+                let age = 1
             }
         "), vec![
             Statement::If {
@@ -605,7 +610,7 @@ mod tests {
             Statement::While { condition: Expression::Bool(true), then: vec![] }
         ]);
 
-        assert_eq!(parse("while true { 1; }"), vec![
+        assert_eq!(parse("while true { 1 }"), vec![
             Statement::While { condition: Expression::Bool(true), then: vec![
                 Statement::Expression { expression: Expression::Number(1.0) },
             ] }
@@ -613,7 +618,7 @@ mod tests {
 
         assert_eq!(parse("
             while true {
-                break;
+                break
             }
         "), vec![
             Statement::While { condition: Expression::Bool(true), then: vec![
@@ -621,53 +626,43 @@ mod tests {
             ] }
         ]);
 
-    assert_eq!(parse("
-        while true {
-            continue;
-        }`
-    "), vec![
-        Statement::While { condition: Expression::Bool(true), then: vec![
-            Statement::Continue,
-        ] }
-    ])
-    }
-
-    #[test]
-    fn literals() {
-        assert_eq!(parse(r##"1; true; false; "testing";"##), vec![
-            Statement::Expression { expression: Expression::Number(1.0) },
-            Statement::Expression { expression: Expression::Bool(true) },
-            Statement::Expression { expression: Expression::Bool(false) },
-            Statement::Expression { expression: Expression::String(String::from("testing")) },
-        ]);
+        assert_eq!(parse("
+            while true {
+                continue
+            }`
+        "), vec![
+            Statement::While { condition: Expression::Bool(true), then: vec![
+                Statement::Continue,
+            ] }
+        ])
     }
 
     #[test]
     fn prefixes() {
-        assert_eq!(parse("-1;"), vec![
+        assert_eq!(parse("-1"), vec![
             Statement::Expression { expression: Expression::Prefix(Op::Subtract, Box::new(Expression::Number(1.0))) },
         ]);
     }
 
     #[test]
     fn infixes() {
-        assert_eq!(parse("1 + 1;"), vec![
+        assert_eq!(parse("1 + 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::Add, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 - 1;"), vec![
+        assert_eq!(parse("1 - 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::Subtract, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 * 1;"), vec![
+        assert_eq!(parse("1 * 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::Multiply, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 / 1;"), vec![
+        assert_eq!(parse("1 / 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::Divide, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 + 2 * 3;"), vec![
+        assert_eq!(parse("1 + 2 * 3"), vec![
             Statement::Expression {
                 expression: Expression::Infix(
                     Expression::Number(1.0).boxed(), Op::Add, Expression::Infix(
@@ -679,7 +674,7 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("1 + 2 * 3 / 4;"), vec![
+        assert_eq!(parse("1 + 2 * 3 / 4"), vec![
             Statement::Expression {
                 expression: Expression::Infix(
                     Expression::Number(1.0).boxed(), Op::Add, Expression::Infix(
@@ -695,31 +690,31 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("1 > 1;"), vec![
+        assert_eq!(parse("1 > 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::GreaterThan, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 < 1;"), vec![
+        assert_eq!(parse("1 < 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::LessThan, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 >= 1;"), vec![
+        assert_eq!(parse("1 >= 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::GreaterThanEquals, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 <= 1;"), vec![
+        assert_eq!(parse("1 <= 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::LessThanEquals, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 == 1;"), vec![
+        assert_eq!(parse("1 == 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::Equals, Expression::Number(1.0).boxed()) }
         ]);
 
-        assert_eq!(parse("1 != 1;"), vec![
+        assert_eq!(parse("1 != 1"), vec![
             Statement::Expression { expression: Expression::Infix(Expression::Number(1.0).boxed(), Op::NotEquals, Expression::Number(1.0).boxed()) }
         ]);
         
-        assert_eq!(parse("foo = 2;"), vec![
+        assert_eq!(parse("foo = 2"), vec![
             Statement::Expression {
                 expression: Expression::Assign(
                     Expression::Identifier("foo".to_owned()).boxed(),
@@ -731,7 +726,7 @@ mod tests {
 
     #[test]
     fn postfixes() {
-        assert_eq!(parse("foo();"), vec![
+        assert_eq!(parse("foo()"), vec![
             Statement::Expression {
                 expression: Expression::Call(
                     Expression::Identifier("foo".to_owned()).boxed(),
@@ -740,7 +735,7 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("foo() + foo();"), vec![
+        assert_eq!(parse("foo() + foo()"), vec![
             Statement::Expression {
                 expression: Expression::Infix(
                     Expression::Call(Expression::Identifier("foo".to_owned()).boxed(), Vec::new()).boxed(),
@@ -750,7 +745,7 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("foo(1);"), vec![
+        assert_eq!(parse("foo(1)"), vec![
             Statement::Expression {
                 expression: Expression::Call(
                     Expression::Identifier("foo".to_owned()).boxed(),
@@ -761,7 +756,7 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("foo(1, 2, 3);"), vec![
+        assert_eq!(parse("foo(1, 2, 3)"), vec![
             Statement::Expression {
                 expression: Expression::Call(
                     Expression::Identifier("foo".to_owned()).boxed(),
@@ -774,7 +769,7 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("foo(1, 2, 3,);"), vec![
+        assert_eq!(parse("foo(1, 2, 3,)"), vec![
             Statement::Expression {
                 expression: Expression::Call(
                     Expression::Identifier("foo".to_owned()).boxed(),

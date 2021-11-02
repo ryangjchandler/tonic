@@ -45,6 +45,7 @@ fn main() {
                         .with_message(match err {
                             ParserErrorType::InvalidBreakableScope => "not inside of breakable structure.",
                             ParserErrorType::InvalidContinuableScope => "not inside of continuable structure.",
+                            _ => unimplemented!()
                         })
                         .with_color(Color::Red)
                 )
