@@ -14,6 +14,7 @@ pub enum ParserErrorType {
     InvalidBreakableScope,
     InvalidContinuableScope,
     UnexpectedToken(String, Option<String>),
+    ExpectedIdentifier,
 }
 
 type BindingPower = u8;
@@ -79,8 +80,8 @@ impl<'p> Parser<'p> {
     fn parse_let(&mut self) -> ParserResult<Statement> {
         self.read();
 
-        let identifier = self.identifier();
-        let mut r#type = self.r#type();
+        let identifier = self.identifier()?;
+        let mut r#type = self.r#type()?;
 
         self.expect(TokenKind::Equals)?;
 
@@ -99,15 +100,15 @@ impl<'p> Parser<'p> {
     fn parse_fn(&mut self) -> ParserResult<Statement> {
         self.read();
 
-        let identifier = self.identifier();
+        let identifier = self.identifier()?;
 
         self.expect(TokenKind::LeftParen)?;
 
-        let parameters = self.parameters();
+        let parameters = self.parameters()?;
 
         self.expect(TokenKind::RightParen)?;
 
-        let return_type = self.r#type();
+        let return_type = self.r#type()?;
 
         self.expect(TokenKind::LeftBrace)?;
 
@@ -276,13 +277,14 @@ impl<'p> Parser<'p> {
         Ok(lhs)
     }
 
-    fn identifier(&mut self) -> String {
+    fn identifier(&mut self) -> ParserResult<String> {
         match self.current.kind.clone() {
             TokenKind::Identifier(i) => {
                 self.read();
-                i
+
+                Ok(i)
             },
-            _ => panic!()
+            _ => Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::ExpectedIdentifier })
         }
     }
 
@@ -306,7 +308,7 @@ impl<'p> Parser<'p> {
         Ok(args)
     }
 
-    fn parameters(&mut self) -> Vec<Parameter> {
+    fn parameters(&mut self) -> ParserResult<Vec<Parameter>> {
         let mut parameters = Vec::new();
 
         loop {
@@ -314,8 +316,8 @@ impl<'p> Parser<'p> {
                 break;
             }
 
-            let identifier = self.identifier();
-            let r#type = self.r#type();
+            let identifier = self.identifier()?;
+            let r#type = self.r#type()?;
 
             parameters.push(Parameter::new(identifier, r#type));
 
@@ -324,7 +326,7 @@ impl<'p> Parser<'p> {
             }
         }
 
-        parameters
+        Ok(parameters)
     }
 
     fn block(&mut self, end: TokenKind) -> ParserResult<Vec<Statement>> {
@@ -337,19 +339,19 @@ impl<'p> Parser<'p> {
         Ok(block)
     }
 
-    fn r#type(&mut self) -> Option<Type> {
+    fn r#type(&mut self) -> ParserResult<Option<Type>> {
         if self.current.kind != TokenKind::Colon && self.current.kind != TokenKind::DoubleColon {
-            None
+            Ok(None)
         } else {
             self.read();
 
-            let r#type = self.identifier();
+            let r#type = self.identifier()?;
             
             if ! Type::valid(&r#type) {
-                return None
+                return Ok(None)
             }
 
-            Some(Type::string(r#type))
+            Ok(Some(Type::string(r#type)))
         }
     }
 

@@ -40,20 +40,23 @@ fn main() {
                             format!("unexpected token {}", token)
                         }
                     },
+                    ParserErrorType::ExpectedIdentifier => "expected a valid identifier".to_string(),
                     _ => unimplemented!(),
                 })
                 .with_code(match err {
                     ParserErrorType::InvalidBreakableScope => 032,
                     ParserErrorType::InvalidContinuableScope => 033,
                     ParserErrorType::UnexpectedToken(..) => 001,
+                    ParserErrorType::ExpectedIdentifier => 002,
                     _ => unimplemented!(),
                 })
                 .with_label(
-                    Label::new((&filename, span.0 - 1 .. span.1))
+                    Label::new((&filename, span.0.saturating_sub(1) .. span.1))
                         .with_message(match err {
                             ParserErrorType::InvalidBreakableScope => "not inside of breakable structure.",
                             ParserErrorType::InvalidContinuableScope => "not inside of continuable structure.",
                             ParserErrorType::UnexpectedToken(..) => "unexpected token",
+                            ParserErrorType::ExpectedIdentifier => "expected identifier",
                             _ => unimplemented!()
                         })
                         .with_color(Color::Red)
