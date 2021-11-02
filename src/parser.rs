@@ -1,7 +1,22 @@
-use crate::{Statement, Expression, Token, TokenKind, Lexer, Type, Parameter};
+use crate::{Statement, Expression, Token, TokenKind, Lexer, Type, Parameter, Span};
 
 pub type Program = Vec<Statement>;
+
+#[derive(Debug, Clone)]
+pub struct ParserError {
+    pub line: usize,
+    pub span: Span,
+    pub err: ParserErrorType,
+}
+
+#[derive(Debug, Clone)]
+pub enum ParserErrorType {
+    InvalidBreakableScope,
+    InvalidContinuableScope,
+}
+
 type BindingPower = u8;
+type ParserResult<T> = Result<T, ParserError>;
 
 #[derive(Debug)]
 pub struct Parser<'p> {
@@ -21,15 +36,15 @@ impl<'p> Parser<'p> {
         self.current = std::mem::replace(&mut self.peek, if let Some(t) = self.lexer.next() { t } else { Token::eof() });
     }
 
-    fn parse_statement(&mut self) -> Statement {
-        match self.current.kind {
+    fn parse_statement(&mut self) -> ParserResult<Statement> {
+        Ok(match self.current.kind {
             TokenKind::Let => self.parse_let(),
-            TokenKind::Fn => self.parse_fn(),
-            TokenKind::If => self.parse_if(),
-            TokenKind::While => self.parse_while(),
+            TokenKind::Fn => self.parse_fn()?,
+            TokenKind::If => self.parse_if()?,
+            TokenKind::While => self.parse_while()?,
             TokenKind::Break => {
                 if ! self.in_breakable_scope {
-                    panic!("can only break inside of a breakable scope")
+                    return Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::InvalidBreakableScope })
                 }
 
                 self.read();
@@ -38,7 +53,7 @@ impl<'p> Parser<'p> {
             },
             TokenKind::Continue => {
                 if ! self.in_breakable_scope {
-                    panic!("can only continue inside of a continuable scope")
+                    return Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::InvalidContinuableScope })
                 }
 
                 self.read();
@@ -57,7 +72,7 @@ impl<'p> Parser<'p> {
                 
                 statement
             },
-        }
+        })
     }
 
     fn parse_let(&mut self) -> Statement {
@@ -80,7 +95,7 @@ impl<'p> Parser<'p> {
         Statement::Let { identifier, r#type, initial: expression }
     }
 
-    fn parse_fn(&mut self) -> Statement {
+    fn parse_fn(&mut self) -> ParserResult<Statement> {
         self.read();
 
         let identifier = self.identifier();
@@ -95,23 +110,23 @@ impl<'p> Parser<'p> {
 
         self.expect(TokenKind::LeftBrace);
 
-        let body = self.block(TokenKind::RightBrace);
+        let body = self.block(TokenKind::RightBrace)?;
 
         self.expect(TokenKind::RightBrace);
 
-        Statement::Function {
+        Ok(Statement::Function {
             identifier, parameters, return_type, body
-        }
+        })
     }
 
-    fn parse_if(&mut self) -> Statement {
+    fn parse_if(&mut self) -> ParserResult<Statement> {
         self.read();
 
         let condition = self.expression(0);
 
         self.expect(TokenKind::LeftBrace);
 
-        let then = self.block(TokenKind::RightBrace);
+        let then = self.block(TokenKind::RightBrace)?;
 
         self.expect(TokenKind::RightBrace);
 
@@ -122,20 +137,20 @@ impl<'p> Parser<'p> {
 
             // If we see another `if` token, then we're going to parse an `else if` statement.
             if self.current.kind == TokenKind::If {
-                otherwise = vec![self.parse_if()];
+                otherwise = vec![self.parse_if()?];
             } else {
                 self.expect(TokenKind::LeftBrace);
 
-                otherwise = self.block(TokenKind::RightBrace);
+                otherwise = self.block(TokenKind::RightBrace)?;
 
                 self.expect(TokenKind::RightBrace);
             }
         }
 
-        Statement::If { condition, then, otherwise }
+        Ok(Statement::If { condition, then, otherwise })
     }
 
-    fn parse_while(&mut self) -> Statement {
+    fn parse_while(&mut self) -> ParserResult<Statement> {
         self.read();
 
         let condition = self.expression(0);
@@ -143,12 +158,12 @@ impl<'p> Parser<'p> {
         self.expect(TokenKind::LeftBrace);
         self.in_breakable_scope = true;
 
-        let then = self.block(TokenKind::RightBrace);
+        let then = self.block(TokenKind::RightBrace)?;
 
         self.expect(TokenKind::RightBrace);
         self.in_breakable_scope = false;
 
-        Statement::While { condition, then }
+        Ok(Statement::While { condition, then })
     }
 
     fn expect(&mut self, kind: TokenKind) {
@@ -307,14 +322,14 @@ impl<'p> Parser<'p> {
         parameters
     }
 
-    fn block(&mut self, end: TokenKind) -> Vec<Statement> {
+    fn block(&mut self, end: TokenKind) -> ParserResult<Vec<Statement>> {
         let mut block = Vec::new();
 
         while self.current.kind != end {
-            block.push(self.parse_statement());
+            block.push(self.parse_statement()?);
         }
 
-        block
+        Ok(block)
     }
 
     fn r#type(&mut self) -> Option<Type> {
@@ -333,17 +348,17 @@ impl<'p> Parser<'p> {
         }
     }
 
-    pub fn parse(&mut self) -> Program {
+    pub fn parse(&mut self) -> ParserResult<Program> {
         let mut program = Vec::new();
 
         self.read();
         self.read();
 
         while self.current.kind != TokenKind::Eof {
-            program.push(self.parse_statement());
+            program.push(self.parse_statement()?);
         }
 
-        program
+        Ok(program)
     }
 }
 
@@ -780,6 +795,6 @@ mod tests {
         parser.read();
         parser.read();
 
-        parser.parse()
+        parser.parse().unwrap()
     }
 }

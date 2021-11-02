@@ -6,3 +6,4 @@ description = ""
 license = "MIT"
 
 [dependencies]
+ariadne = "0.1.3"
