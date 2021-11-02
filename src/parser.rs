@@ -175,7 +175,7 @@ impl<'p> Parser<'p> {
 
             Ok(())
         } else {
-            return Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::UnexpectedToken(stringify!(self.current.kind).to_string(), Some(stringify!(kind).to_string())) })
+            return Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::UnexpectedToken(format!("{:?}", self.current.kind), Some(format!("{:?}", kind))) })
         }
     }
 

@@ -31,13 +31,21 @@ fn main() {
         Err(ParserError { line, span, err }) => {
             Report::build(ReportKind::Error, &filename, line)
                 .with_message(match err {
-                    ParserErrorType::InvalidBreakableScope => "`break` statements can only be used inside of `while` structures.",
-                    ParserErrorType::InvalidContinuableScope => "`continue` statements can only be used inside of `while` structures.",
+                    ParserErrorType::InvalidBreakableScope => "`break` statements can only be used inside of `while` structures.".to_string(),
+                    ParserErrorType::InvalidContinuableScope => "`continue` statements can only be used inside of `while` structures.".to_string(),
+                    ParserErrorType::UnexpectedToken(ref token, ref expected) => {
+                        if let Some(expected) = expected {
+                            format!("unexpected token {}, expected {}", token, expected)
+                        } else {
+                            format!("unexpected token {}", token)
+                        }
+                    },
                     _ => unimplemented!(),
                 })
                 .with_code(match err {
                     ParserErrorType::InvalidBreakableScope => 032,
                     ParserErrorType::InvalidContinuableScope => 033,
+                    ParserErrorType::UnexpectedToken(..) => 001,
                     _ => unimplemented!(),
                 })
                 .with_label(
@@ -45,6 +53,7 @@ fn main() {
                         .with_message(match err {
                             ParserErrorType::InvalidBreakableScope => "not inside of breakable structure.",
                             ParserErrorType::InvalidContinuableScope => "not inside of continuable structure.",
+                            ParserErrorType::UnexpectedToken(..) => "unexpected token",
                             _ => unimplemented!()
                         })
                         .with_color(Color::Red)
