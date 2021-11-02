@@ -4,14 +4,17 @@ mod parser;
 mod statement;
 mod expression;
 mod r#type;
+mod compiler;
 
 pub use token::{TokenKind, Token, Span};
 pub use lexer::Lexer;
 pub use statement::{Statement, Parameter};
 pub use expression::{Expression, Op};
 pub use r#type::Type;
-pub use parser::{Parser, ParserError, ParserErrorType};
+pub use parser::{Parser, ParserError, ParserErrorType, Program};
+pub use compiler::Compiler;
 use ariadne::{Report, ReportKind, Label, Source, Color};
+use zub::vm::{Heap, VM, Value, Object};
 
 const HELP: &str = "Tonic v0.1.0
 
@@ -70,6 +73,8 @@ fn main() {
     };
 
     dbg!(&ast);
+
+    let code = Compiler::new(ast.into_iter()).build();
 }
 
 fn show_help() -> bool {
