@@ -7,4 +7,3 @@ license = "MIT"
 
 [dependencies]
 ariadne = "0.1.3"
-zub = "0.3.14"

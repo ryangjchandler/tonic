@@ -5,6 +5,9 @@ mod statement;
 mod expression;
 mod r#type;
 mod compiler;
+mod value;
+mod code;
+mod vm;
 
 pub use token::{TokenKind, Token, Span};
 pub use lexer::Lexer;
@@ -13,8 +16,9 @@ pub use expression::{Expression, Op};
 pub use r#type::Type;
 pub use parser::{Parser, ParserError, ParserErrorType, Program};
 pub use compiler::Compiler;
+pub use value::Value;
+pub use code::Code;
 use ariadne::{Report, ReportKind, Label, Source, Color};
-use zub::vm::{Heap, VM, Value, Object};
 
 const HELP: &str = "Tonic v0.1.0
 
@@ -75,6 +79,20 @@ fn main() {
     dbg!(&ast);
 
     let code = Compiler::new(ast.into_iter()).build();
+
+    dbg!(&code);
+
+    let mut vm = vm::VM::new(code); 
+
+    vm.add_function("dbg", |_: &mut vm::VM, args: &[Value]| {
+        for arg in args {
+            println!("{:?}", arg);
+        }
+
+        Value::Null
+    });
+
+    vm.run();
 }
 
 fn show_help() -> bool {
