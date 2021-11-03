@@ -84,6 +84,11 @@ impl VM {
                         Value::Function(Function::User(_, scope)) => {
                             self.frames.push(Frame { return_scope: self.scope });
                             self.scope = scope;
+
+                            for arg in args {
+                                self.scope_mut().push(arg);
+                            }
+
                             continue;
                         },
                         _ => unimplemented!()

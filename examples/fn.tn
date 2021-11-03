@@ -1,5 +1,5 @@
-fn main() {
-    dbg("Hello, world!")
+fn main(message) {
+    dbg(message)
 }
 
-main()
+main("Hello, world!")
