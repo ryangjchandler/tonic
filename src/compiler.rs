@@ -1,4 +1,4 @@
-use crate::{Statement, Expression, Code, Value};
+use crate::{Statement, Expression, Code, Value, Function};
 use std::vec::IntoIter;
 use std::collections::HashMap;
 
@@ -48,6 +48,7 @@ impl Scope {
 pub struct Compiler {
     program: IntoIter<Statement>,
     scopes: Vec<Scope>,
+    scope: usize,
 }
 
 impl Compiler {
@@ -58,6 +59,7 @@ impl Compiler {
             scopes: vec![
                 Scope::default(),
             ],
+            scope: 0,
         }
     }
 
@@ -65,6 +67,26 @@ impl Compiler {
         match statement {
             Statement::Let { identifier, initial, .. } => {
                 self.compile_expression(initial);
+                self.emit(Code::Set(identifier));
+            },
+            Statement::Function { identifier, mut parameters, body, .. } => {
+                let scope_index = self.enter_scope();
+
+                parameters.reverse();
+                for parameter in parameters {
+                    self.emit(Code::Set(parameter.name));
+                }
+
+                for statement in body {
+                    self.compile_statement(statement);
+                }
+
+                self.emit(Code::Constant(Value::Null));
+                self.emit(Code::Return);
+
+                self.leave_scope();
+
+                self.emit(Code::Constant(Value::Function(Function::User(identifier.clone(), scope_index))));
                 self.emit(Code::Set(identifier));
             },
             Statement::Expression { expression } => {
@@ -103,7 +125,19 @@ impl Compiler {
     }
 
     fn scope(&mut self) -> &mut Scope {
-        self.scopes.last_mut().unwrap()
+        self.scopes.get_mut(self.scope).unwrap()
+    }
+
+    fn enter_scope(&mut self) -> usize {
+        self.scope += 1;
+        
+        self.scopes.push(Scope::default());
+
+        self.scope
+    }
+
+    fn leave_scope(&mut self) {
+        self.scope -= 1;
     }
 
     pub fn build(&mut self) -> Vec<Scope> {

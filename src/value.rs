@@ -9,14 +9,14 @@ pub enum Value {
 
 #[derive(Clone)]
 pub enum Function {
-    User,
+    User(String, usize),
     Internal(InternalFunction),
 }
 
 impl std::fmt::Debug for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Function::User => write!(f, "User"),
+            Function::User(name, _) => write!(f, "{}()", name),
             Function::Internal(_) => write!(f, "InternalFunction<>"),
         }
     }

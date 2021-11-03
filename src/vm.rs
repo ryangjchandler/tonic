@@ -5,9 +5,14 @@ use std::collections::HashMap;
 
 pub type InternalFunction = fn (&mut VM, args: &[Value]) -> Value;
 
+pub struct Frame {
+    return_scope: usize,
+}
+
 pub struct VM {
     scopes: Vec<Scope>,
     scope: usize,
+    frames: Vec<Frame>,
     fns: HashMap<String, Value>,
 }
 
@@ -16,6 +21,7 @@ impl VM {
         Self {
             scopes,
             scope: 0,
+            frames: vec![],
             fns: HashMap::default(),
         }
     }
@@ -75,9 +81,23 @@ impl VM {
 
                             self.scope_mut().push(result);
                         },
+                        Value::Function(Function::User(_, scope)) => {
+                            self.frames.push(Frame { return_scope: self.scope });
+                            self.scope = scope;
+                            continue;
+                        },
                         _ => unimplemented!()
                     };
 
+                    self.scope_mut().next();
+                },
+                Code::Return => {
+                    let value = self.scope_mut().pop();
+                    let Frame { return_scope } = self.frames.pop().unwrap();
+
+                    self.scope = return_scope;
+
+                    self.scope_mut().push(value);
                     self.scope_mut().next();
                 },
                 _ => unimplemented!("{:?}", code),

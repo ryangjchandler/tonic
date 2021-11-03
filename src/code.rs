@@ -10,4 +10,5 @@ pub enum Code {
     Call(usize),
     Pop,
     Send,
+    Return,
 }

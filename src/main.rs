@@ -16,7 +16,7 @@ pub use expression::{Expression, Op};
 pub use r#type::Type;
 pub use parser::{Parser, ParserError, ParserErrorType, Program};
 pub use compiler::Compiler;
-pub use value::Value;
+pub use value::{Value, Function};
 pub use code::Code;
 use ariadne::{Report, ReportKind, Label, Source, Color};
 
