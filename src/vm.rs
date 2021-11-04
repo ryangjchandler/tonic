@@ -109,8 +109,8 @@ impl VM {
                     let right = self.scope_mut().pop();
                     let left = self.scope_mut().pop();
 
-                    match (left, right) {
-                        (Value::Number(l), Value::Number(r)) => {
+                    match (left.clone(), right.clone()) {
+                        (Value::Number(l), Value::Number(r)) if op.math() => {
                             self.scope_mut().push(Value::Number(match op {
                                 Op::Add => l + r,
                                 Op::Subtract => l - r,
@@ -119,7 +119,13 @@ impl VM {
                                 _ => unreachable!()
                             }));
                         },
-                        _ => panic!("Not a number!")
+                        _ => {
+                            self.scope_mut().push(match op {
+                                Op::Equals => Value::Bool(left == right),
+                                Op::NotEquals => Value::Bool(left != right),
+                                _ => unimplemented!("op: {:?}, left: {:?}, right: {:?}", op, left, right),
+                            });
+                        }
                     };
 
                     self.scope_mut().next();

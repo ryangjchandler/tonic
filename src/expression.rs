@@ -74,3 +74,9 @@ impl From<&TokenKind> for Op {
         }
     }
 }
+
+impl Op {
+    pub fn math(&self) -> bool {
+        matches!(self, Self::Add | Self::Subtract | Self::Multiply | Self::Divide)
+    }
+}
