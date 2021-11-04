@@ -159,6 +159,10 @@ impl Compiler {
                 // of the statement has ended.
                 self.scope().replace(jump_if_false, Code::JumpFalse(after_body_ip));
             },
+            Statement::Return { expression } => {
+                self.compile_expression(expression);
+                self.emit(Code::Return);
+            },
             Statement::Expression { expression } => {
                 self.compile_expression(expression);
             },
