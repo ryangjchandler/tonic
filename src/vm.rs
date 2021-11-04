@@ -146,6 +146,15 @@ impl VM {
                         self.scope_mut().goto(falsy);
                     }
                 },
+                Code::JumpFalse(ip) => {
+                    let value = self.scope_mut().pop();
+
+                    if value == Value::Bool(false) {
+                        self.scope_mut().goto(ip);
+                    } else {
+                        self.scope_mut().next();
+                    }
+                }
                 _ => unimplemented!("{:?}", code),
             }
         }

@@ -1,3 +1,5 @@
+#![feature(box_patterns)]
+
 mod token;
 mod lexer;
 mod parser;

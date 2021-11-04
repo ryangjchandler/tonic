@@ -136,10 +136,33 @@ impl Compiler {
                 self.scope().replace(then_jump_ip, Code::Jump(end_ip));
                 self.scope().replace(otherwise_jump_ip, Code::Jump(end_ip));
             },
+            Statement::While { condition, then } => {
+                let pre_condition_ip = self.scope().len();
+
+                // Compile the expression and push to the stack.
+                self.compile_expression(condition);
+
+                // Keep track of where the falsy jump is so that we can replace it later on.
+                let jump_if_false = self.emit(Code::JumpFalse(9999));
+
+                // Compile the body of the statement.
+                for statement in then {
+                    self.compile_statement(statement);
+                }
+
+                // Emit a `Jump` back to the start to re-check the condition.
+                self.emit(Code::Jump(pre_condition_ip));
+
+                let after_body_ip = self.scope().len();
+
+                // Update the `JumpFalse` to jump to this position since the body
+                // of the statement has ended.
+                self.scope().replace(jump_if_false, Code::JumpFalse(after_body_ip));
+            },
             Statement::Expression { expression } => {
                 self.compile_expression(expression);
             },
-            _ => unimplemented!()
+            _ => unimplemented!("statement: {:?}", statement)
         }
     }
 
@@ -171,13 +194,21 @@ impl Compiler {
 
                 self.emit(Code::Call(arity));
             },
+            Expression::Assign(target, value) => {
+                self.compile_expression(*value);
+
+                match target {
+                    box Expression::Identifier(i) => self.emit(Code::Set(i)),
+                    _ => unimplemented!("assign to: {:?}", *target),
+                };
+            },
             _ => unimplemented!("{:?}", expression)
         }
     }
 
     fn emit(&mut self, code: Code) -> usize {
         self.scope().code.push(code);
-        self.scope().code.len()
+        self.scope().code.len() - 1
     }
 
     fn scope(&mut self) -> &mut Scope {

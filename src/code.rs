@@ -10,6 +10,7 @@ pub enum Code {
     // This will let us pop the values off the stack before calling the function.
     Call(usize),
     Jump(usize),
+    JumpFalse(usize),
     JumpIfElse(usize, usize),
     Pop,
     Send,
