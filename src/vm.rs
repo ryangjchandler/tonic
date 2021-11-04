@@ -34,8 +34,8 @@ impl VM {
         self.scopes.get_mut(self.scope).unwrap()
     }
 
-    pub fn add_function(&mut self, name: &str, callback: InternalFunction) {
-        self.fns.insert(name.into(), Value::Function(Function::Internal(callback)));
+    pub fn add_function(&mut self, name: &'static str, callback: InternalFunction) {
+        self.fns.insert(name.into(), Value::Function(Function::Internal(name, callback)));
     }
 
     pub fn run(&mut self) {
@@ -76,7 +76,7 @@ impl VM {
                     let function = self.scope_mut().pop();
 
                     match function {
-                        Value::Function(Function::Internal(function)) => {
+                        Value::Function(Function::Internal(_, function)) => {
                             let result = function(self, &args);
 
                             self.scope_mut().push(result);

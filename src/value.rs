@@ -62,14 +62,14 @@ impl Value {
 #[derive(Clone)]
 pub enum Function {
     User(String, usize),
-    Internal(InternalFunction),
+    Internal(&'static str, InternalFunction),
 }
 
 impl std::fmt::Debug for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Function::User(name, _) => write!(f, "{}()", name),
-            Function::Internal(_) => write!(f, "InternalFunction<>"),
+            Function::Internal(name, _) => write!(f, "InternalFunction<{}>", name),
         }
     }
 }
