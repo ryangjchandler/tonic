@@ -219,16 +219,16 @@ impl Compiler {
         self.scopes.get_mut(self.scope).unwrap()
     }
 
-    fn enter_scope(&mut self) -> usize {
-        self.scope += 1;
-        
+    fn enter_scope(&mut self) -> usize {   
+        self.scope = self.scopes.len();
+
         self.scopes.push(Scope::default());
 
         self.scope
     }
 
     fn leave_scope(&mut self) {
-        self.scope -= 1;
+        self.scope = 0;
     }
 
     pub fn build(&mut self) -> Vec<Scope> {

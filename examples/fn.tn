@@ -3,3 +3,9 @@ fn main(message) {
 }
 
 main("Hello, world!")
+
+fn name() {
+    return "Ryan"
+}
+
+dbg(name())
