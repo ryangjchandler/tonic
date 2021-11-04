@@ -1,5 +1,5 @@
 use crate::compiler::Scope;
-use crate::{Code, Value};
+use crate::{Code, Value, Op};
 use crate::value::Function;
 use std::collections::HashMap;
 
@@ -103,6 +103,25 @@ impl VM {
                     self.scope = return_scope;
 
                     self.scope_mut().push(value);
+                    self.scope_mut().next();
+                },
+                Code::Op(op) => {
+                    let right = self.scope_mut().pop();
+                    let left = self.scope_mut().pop();
+
+                    match (left, right) {
+                        (Value::Number(l), Value::Number(r)) => {
+                            self.scope_mut().push(Value::Number(match op {
+                                Op::Add => l + r,
+                                Op::Subtract => l - r,
+                                Op::Multiply => l * r,
+                                Op::Divide => l / r,
+                                _ => unreachable!()
+                            }));
+                        },
+                        _ => panic!("Not a number!")
+                    };
+
                     self.scope_mut().next();
                 },
                 _ => unimplemented!("{:?}", code),

@@ -22,7 +22,7 @@ impl Expression {
 }
 
 /// The `Op` enumeration is used to represent prefix, infix and other operations.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Op {
     Add,
     Subtract,

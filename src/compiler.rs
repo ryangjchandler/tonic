@@ -101,8 +101,17 @@ impl Compiler {
             Expression::String(s) => {
                 self.emit(Code::Constant(Value::String(s)));
             },
+            Expression::Number(n) => {
+                self.emit(Code::Constant(Value::Number(n)));
+            },
             Expression::Identifier(s) => {
                 self.emit(Code::Get(s));
+            },
+            Expression::Infix(left, op, right) => {
+                self.compile_expression(*left);
+                self.compile_expression(*right);
+
+                self.emit(Code::Op(op));
             },
             Expression::Call(callable, args) => {
                 self.compile_expression(*callable);

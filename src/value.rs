@@ -3,8 +3,18 @@ use crate::vm::InternalFunction;
 #[derive(Debug, Clone)]
 pub enum Value {
     String(String),
+    Number(f64),
     Function(Function),
     Null,
+}
+
+impl Value {
+    pub fn to_f64(self) -> f64 {
+        match self {
+            Value::Number(n) => n,
+            _ => unreachable!()
+        }
+    }
 }
 
 #[derive(Clone)]
