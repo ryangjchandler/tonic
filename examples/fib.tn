@@ -6,4 +6,4 @@ fn fib(n) {
     return fib(n - 1) + fib(n - 2)
 }
 
-dbg(fib(5))
+dbg(fib(30))

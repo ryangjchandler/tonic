@@ -78,10 +78,12 @@ fn main() {
         },
     };
 
+    #[cfg(debug_assertions)]
     dbg!(&ast);
 
     let code = Compiler::new(ast.into_iter()).build();
 
+    #[cfg(debug_assertions)]
     dbg!(&code);
 
     let mut vm = vm::VM::new(code); 
