@@ -58,8 +58,10 @@ impl Compiler {
                     self.compile_statement(statement);
                 }
 
-                self.emit(Code::Constant(Value::Null));
-                self.emit(Code::Return);
+                if ! matches!(self.scope().code.last(), Some(&Code::Return)) {
+                    self.emit(Code::Constant(Value::Null));
+                    self.emit(Code::Return);
+                }
 
                 self.leave_scope();
 

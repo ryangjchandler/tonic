@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 pub type InternalFunction = fn (&mut VM, args: &[Value]) -> Value;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Frame {
     code: Vec<Code>,
     ip: usize,
@@ -112,6 +112,9 @@ impl VM {
                     let value = self.frame_mut().pop();
 
                     match value {
+                        Value::Function(..) => {
+                            self.fns.insert(s, value);
+                        }
                         _ => self.frame_mut().set(s, value),
                     }
 
