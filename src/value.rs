@@ -28,13 +28,13 @@ impl Eq for Value {}
 impl PartialOrd for Value {
     fn partial_cmp(&self, other: &Value) -> Option<Ordering> {
         match (self, other) {
-            (Value::String(l), Value::String(r)) => if l < r { Some(Ordering::Less) } else if l > r { Some(Ordering::Greater) } else { Some(Ordering::Equal) },
+            (Value::String(l), Value::String(r)) => Some(l.cmp(r)),
             (Value::String(l), Value::Number(r)) => {
                 let l_str = l.as_str();
                 let r_string = r.to_string();
                 let r_str = r_string.as_str();
 
-                if l_str < r_str { Some(Ordering::Less) } else if l_str > r_str { Some(Ordering::Greater) } else { Some(Ordering::Equal) }
+                Some(l_str.cmp(r_str))
             },
             (Value::Number(l), Value::String(r)) => {
                 let l_string = l.to_string();
@@ -42,7 +42,7 @@ impl PartialOrd for Value {
 
                 let r_str = r.as_str();
 
-                if l_str < r_str { Some(Ordering::Less) } else if l_str > r_str { Some(Ordering::Greater) } else { Some(Ordering::Equal) }
+                Some(l_str.cmp(r_str))
             },
             (Value::Number(l), Value::Number(r)) => if l < r { Some(Ordering::Less) } else if l > r { Some(Ordering::Greater) } else { Some(Ordering::Equal) },
             _ => unimplemented!()

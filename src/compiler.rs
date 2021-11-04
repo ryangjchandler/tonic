@@ -1,6 +1,5 @@
 use crate::{Statement, Expression, Code, Value, Function};
 use std::vec::IntoIter;
-use std::collections::HashMap;
 
 #[derive(Debug, Default, Clone)]
 pub struct Scope {
