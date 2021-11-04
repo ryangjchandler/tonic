@@ -7,42 +7,16 @@ pub type InternalFunction = fn (&mut VM, args: &[Value]) -> Value;
 
 #[derive(Default, Debug)]
 pub struct Frame {
-    code: Vec<Code>,
-    ip: usize,
-    stack: Vec<Value>,
-    sp: usize,
+    f_return: usize,
     environment: HashMap<String, Value>,
 }
 
 impl Frame {
-    pub fn new(code: Vec<Code>) -> Self {
+    pub fn new(f_return: usize) -> Self {
         Self {
-            code,
+            f_return,
             ..Default::default()
         }
-    }
-
-    pub fn goto(&mut self, ip: usize) {
-        self.ip = ip;
-    }
-
-    pub fn runnable(&self) -> bool {
-        self.ip < self.code.len()
-    }
-
-    pub fn current(&self) -> Code {
-        self.code.get(self.ip).unwrap().clone()
-    }
-
-    pub fn push(&mut self, value: Value) -> usize {
-        self.sp += 1;
-        self.stack.push(value);
-        self.sp
-    }
-
-    pub fn pop(&mut self) -> Value {
-        self.sp = self.sp.saturating_sub(1);
-        self.stack.pop().unwrap()
     }
 
     pub fn get(&self, name: String) -> Value {
@@ -52,29 +26,52 @@ impl Frame {
     pub fn set(&mut self, name: String, value: Value) {
         self.environment.insert(name, value);
     }
-
-    pub fn next(&mut self) {
-        self.ip += 1
-    }
 }
 
 pub struct VM {
+    code: Vec<Code>,
+    ip: usize,
+
+    stack: Vec<Value>,
+    sp: usize,
+
     scopes: Vec<Scope>,
     frames: Vec<Frame>,
     fns: HashMap<String, Value>,
 }
 
 impl VM {
-    pub fn new(scopes: Vec<Scope>) -> Self {
-        let entry = scopes.first().unwrap().code();
-
+    pub fn new(code: Vec<Code>, scopes: Vec<Scope>) -> Self {
         Self {
+            code,
             scopes,
+            sp: 0,
             frames: vec![
-                Frame::new(entry)
+                Frame::new(0)
             ],
             fns: HashMap::default(),
+            stack: Vec::new(),
+            ip: 0,
         }
+    }
+
+    pub fn push(&mut self, value: Value) -> usize {
+        self.sp += 1;
+        self.stack.push(value);
+        self.sp
+    }
+
+    pub fn goto(&mut self, ip: usize) {
+        self.ip = ip;
+    }
+
+    pub fn pop(&mut self) -> Value {
+        self.sp = self.sp.saturating_sub(1);
+        self.stack.pop().unwrap()
+    }
+
+    pub fn next(&mut self) {
+        self.ip += 1
     }
 
     pub fn add_function(&mut self, name: &'static str, callback: InternalFunction) {
@@ -89,14 +86,18 @@ impl VM {
         self.frames.last().unwrap()
     }
 
+    fn current(&self) -> Code {
+        self.code.get(self.ip).unwrap().clone()
+    }
+
     pub fn run(&mut self) {
-        while self.frame().runnable() {
-            let code = self.frame().current();
+        while self.ip < self.code.len() {
+            let code = self.current();
 
             match code {
                 Code::Constant(s) => {
-                    self.frame_mut().push(s);
-                    self.frame_mut().next();
+                    self.push(s);
+                    self.next();
                 },
                 Code::Get(s) => {
                     let value = if self.fns.contains_key(&s) {
@@ -105,68 +106,68 @@ impl VM {
                         self.frame().get(s)
                     };
 
-                    self.frame_mut().push(value);
-                    self.frame_mut().next();
+                    self.push(value);
+                    self.next();
                 },
                 Code::Set(s) => {
-                    let value = self.frame_mut().pop();
+                    let value = self.pop();
 
                     match value {
                         Value::Function(..) => {
                             self.fns.insert(s, value);
-                        }
+                        },
                         _ => self.frame_mut().set(s, value),
                     }
 
-                    self.frame_mut().next();
+                    self.next();
                 },
                 Code::Call(number_of_args) => {
                     let mut args = Vec::with_capacity(number_of_args);
 
                     for _ in 0..number_of_args {
-                        args.push(self.frame_mut().pop());
+                        args.push(self.pop());
                     }
 
-                    let function = self.frame_mut().pop();
+                    let function = self.pop();
 
                     match function {
                         Value::Function(Function::Internal(_, function)) => {
                             let result = function(self, &args);
 
-                            self.frame_mut().push(result);
+                            self.push(result);
                         },
-                        Value::Function(Function::User(_, scope)) => {
-                            let scope = self.scopes.get(scope).unwrap();
+                        // Value::Function(Function::User(_, scope)) => {
+                        //     let scope = self.scopes.get(scope).unwrap();
 
-                            self.frames.push(Frame::new(scope.code()));
+                        //     self.frames.push(Frame::new(scope.code()));
 
-                            for arg in args {
-                                self.frame_mut().push(arg);
-                            }
+                        //     for arg in args {
+                        //         self.frame_mut().push(arg);
+                        //     }
 
-                            continue;
-                        },
+                        //     continue;
+                        // },
                         _ => unimplemented!()
                     };
 
-                    self.frame_mut().next();
+                    self.next();
                 },
                 Code::Return => {
-                    let value = self.frame_mut().pop();
+                    let value = self.pop();
 
                     // Exit the current frame since we're returning and don't need it anymore.
                     self.frames.pop();
 
-                    self.frame_mut().push(value);
-                    self.frame_mut().next();
+                    self.push(value);
+                    self.next();
                 },
                 Code::Op(op) => {
-                    let right = self.frame_mut().pop();
-                    let left = self.frame_mut().pop();
+                    let right = self.pop();
+                    let left = self.pop();
 
                     match (left.clone(), right.clone()) {
                         (Value::Number(l), Value::Number(r)) if op.math() => {
-                            self.frame_mut().push(Value::Number(match op {
+                            self.push(Value::Number(match op {
                                 Op::Add => l + r,
                                 Op::Subtract => l - r,
                                 Op::Multiply => l * r,
@@ -175,7 +176,7 @@ impl VM {
                             }));
                         },
                         _ => {
-                            self.frame_mut().push(match op {
+                            self.push(match op {
                                 Op::Equals => Value::Bool(left == right),
                                 Op::NotEquals => Value::Bool(left != right),
                                 Op::GreaterThan => Value::Bool(left > right),
@@ -187,27 +188,27 @@ impl VM {
                         }
                     };
 
-                    self.frame_mut().next();
+                    self.next();
                 },
                 Code::Jump(ip) => {
-                    self.frame_mut().goto(ip);
+                    self.goto(ip);
                 },
                 Code::JumpIfElse(truthy, falsy) => {
-                    let value = self.frame_mut().pop();
+                    let value = self.pop();
 
                     if value == Value::Bool(true) {
-                        self.frame_mut().goto(truthy);
+                        self.goto(truthy);
                     } else {
-                        self.frame_mut().goto(falsy);
+                        self.goto(falsy);
                     }
                 },
                 Code::JumpFalse(ip) => {
-                    let value = self.frame_mut().pop();
+                    let value = self.pop();
 
                     if value == Value::Bool(false) {
-                        self.frame_mut().goto(ip);
+                        self.goto(ip);
                     } else {
-                        self.frame_mut().next();
+                        self.next();
                     }
                 }
                 _ => unimplemented!("{:?}", code),

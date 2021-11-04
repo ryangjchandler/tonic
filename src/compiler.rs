@@ -3,26 +3,24 @@ use std::vec::IntoIter;
 
 #[derive(Debug, Default, Clone)]
 pub struct Scope {
-    code: Vec<Code>,
+    start: usize,
+    s_return: usize,
 }
 
 impl Scope {
-    pub fn replace(&mut self, ip: usize, code: Code) {
-        self.code[ip] = code;
+    pub fn new(start: usize, s_return: usize) -> Self {
+        Self { start, s_return }
     }
 
-    pub fn len(&self) -> usize {
-        self.code.len()
-    }
-
-    pub fn code(&self) -> Vec<Code> {
-        self.code.clone()
+    pub fn set_return(&mut self, s_return: usize) {
+        self.s_return = s_return;
     }
 }
 
 #[derive(Debug)]
 pub struct Compiler {
     program: IntoIter<Statement>,
+    code: Vec<Code>,
     scopes: Vec<Scope>,
     scope: usize,
 }
@@ -32,6 +30,7 @@ impl Compiler {
     pub fn new(program: IntoIter<Statement>) -> Self {
         Self {
             program,
+            code: Vec::new(),
             scopes: vec![
                 Scope::default(),
             ],
@@ -57,7 +56,7 @@ impl Compiler {
                     self.compile_statement(statement);
                 }
 
-                if ! matches!(self.scope().code.last(), Some(&Code::Return)) {
+                if ! matches!(self.code.last(), Some(&Code::Return)) {
                     self.emit(Code::Constant(Value::Null));
                     self.emit(Code::Return);
                 }
@@ -71,39 +70,39 @@ impl Compiler {
                 // Compile the expression.
                 self.compile_expression(condition);
 
-                let jump_if_ip = self.scope().len();
+                let jump_if_ip = self.len();
                 self.emit(Code::JumpIfElse(9999, 9999));
 
                 // Compile the `then` block.
-                let then_start = self.scope().len();
+                let then_start = self.len();
 
                 for statement in then {
                     self.compile_statement(statement);
                 }
 
-                let then_jump_ip = self.scope().len();
+                let then_jump_ip = self.len();
                 self.emit(Code::Jump(9999));
 
                 // Compile the `otherwise` block.
-                let otherwise_start = self.scope().len();
+                let otherwise_start = self.len();
 
                 // Replace the conditional jump since we know where the blocks being now.
-                self.scope().replace(jump_if_ip, Code::JumpIfElse(then_start, otherwise_start));
+                self.replace(jump_if_ip, Code::JumpIfElse(then_start, otherwise_start));
 
                 for statement in otherwise {
                     self.compile_statement(statement);
                 }
 
-                let otherwise_jump_ip = self.scope().len();
+                let otherwise_jump_ip = self.len();
                 self.emit(Code::Jump(9999));
 
-                let end_ip = self.scope().len();
+                let end_ip = self.len();
 
-                self.scope().replace(then_jump_ip, Code::Jump(end_ip));
-                self.scope().replace(otherwise_jump_ip, Code::Jump(end_ip));
+                self.replace(then_jump_ip, Code::Jump(end_ip));
+                self.replace(otherwise_jump_ip, Code::Jump(end_ip));
             },
             Statement::While { condition, then } => {
-                let pre_condition_ip = self.scope().len();
+                let pre_condition_ip = self.len();
 
                 // Compile the expression and push to the stack.
                 self.compile_expression(condition);
@@ -119,11 +118,11 @@ impl Compiler {
                 // Emit a `Jump` back to the start to re-check the condition.
                 self.emit(Code::Jump(pre_condition_ip));
 
-                let after_body_ip = self.scope().len();
+                let after_body_ip = self.len();
 
                 // Update the `JumpFalse` to jump to this position since the body
                 // of the statement has ended.
-                self.scope().replace(jump_if_false, Code::JumpFalse(after_body_ip));
+                self.replace(jump_if_false, Code::JumpFalse(after_body_ip));
             },
             Statement::Return { expression } => {
                 self.compile_expression(expression);
@@ -176,9 +175,21 @@ impl Compiler {
         }
     }
 
+    pub fn replace(&mut self, ip: usize, code: Code) {
+        self.code[ip] = code;
+    }
+
+    pub fn len(&self) -> usize {
+        self.code.len()
+    }
+
+    pub fn code(&self) -> Vec<Code> {
+        self.code.clone()
+    }
+
     fn emit(&mut self, code: Code) -> usize {
-        self.scope().code.push(code);
-        self.scope().code.len() - 1
+        self.code.push(code);
+        self.code.len() - 1
     }
 
     fn scope(&mut self) -> &mut Scope {
@@ -194,14 +205,17 @@ impl Compiler {
     }
 
     fn leave_scope(&mut self) {
+        let s_return = self.code.len();
+
+        self.scope().set_return(s_return);
         self.scope = 0;
     }
 
-    pub fn build(&mut self) -> Vec<Scope> {
+    pub fn build(&mut self) -> (Vec<Code>, Vec<Scope>) {
         while let Some(statement) = self.program.next() {
             self.compile_statement(statement);
         }
 
-        self.scopes.clone()
+        (self.code.clone(), self.scopes.clone())
     }
 }

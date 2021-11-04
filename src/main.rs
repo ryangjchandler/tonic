@@ -81,12 +81,9 @@ fn main() {
     #[cfg(debug_assertions)]
     dbg!(&ast);
 
-    let code = Compiler::new(ast.into_iter()).build();
+    let (code, scopes) = Compiler::new(ast.into_iter()).build();
 
-    #[cfg(debug_assertions)]
-    dbg!(&code);
-
-    let mut vm = vm::VM::new(code); 
+    let mut vm = vm::VM::new(code, scopes); 
 
     vm.add_function("dbg", |_: &mut vm::VM, args: &[Value]| {
         for arg in args {
