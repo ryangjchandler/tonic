@@ -3,6 +3,8 @@ fn main(message) {
 }
 
 main("Hello, world!")
+main("Hello, again!")
+main("Here's another one for you.")
 
 fn name() {
     return "Ryan"

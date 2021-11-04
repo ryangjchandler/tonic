@@ -2,6 +2,8 @@ use crate::{Value, Op};
 
 #[derive(Debug, Clone)]
 pub enum Code {
+    // name of the label (function name), position to jump to to skip over function
+    Label(String, usize),
     Constant(Value),
     Set(String),
     Get(String),

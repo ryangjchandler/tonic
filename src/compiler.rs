@@ -3,17 +3,17 @@ use std::vec::IntoIter;
 
 #[derive(Debug, Default, Clone)]
 pub struct Scope {
-    start: usize,
-    s_return: usize,
+    pub start: usize,
+    pub end: usize,
 }
 
 impl Scope {
-    pub fn new(start: usize, s_return: usize) -> Self {
-        Self { start, s_return }
+    pub fn new(start: usize, end: usize) -> Self {
+        Self { start, end }
     }
 
-    pub fn set_return(&mut self, s_return: usize) {
-        self.s_return = s_return;
+    pub fn set_end(&mut self, end: usize) {
+        self.end = end;
     }
 }
 
@@ -45,6 +45,8 @@ impl Compiler {
                 self.emit(Code::Set(identifier));
             },
             Statement::Function { identifier, mut parameters, body, .. } => {
+                let label_position = self.emit(Code::Label(String::new(), 9999));
+
                 let scope_index = self.enter_scope();
 
                 parameters.reverse();
@@ -61,7 +63,10 @@ impl Compiler {
                     self.emit(Code::Return);
                 }
 
-                self.leave_scope();
+                let function_end_position = self.leave_scope();
+
+                // Add one here to account for the `Set` opcode.
+                self.replace(label_position, Code::Label(identifier.clone(), function_end_position));
 
                 self.emit(Code::Constant(Value::Function(Function::User(identifier.clone(), scope_index))));
                 self.emit(Code::Set(identifier));
@@ -199,16 +204,19 @@ impl Compiler {
     fn enter_scope(&mut self) -> usize {   
         self.scope = self.scopes.len();
 
-        self.scopes.push(Scope::default());
+        self.scopes.push(Scope::new(self.code.len(), 0));
 
         self.scope
     }
 
-    fn leave_scope(&mut self) {
-        let s_return = self.code.len();
+    fn leave_scope(&mut self) -> usize {
+        // End is where the end of the function definition is.
+        let end = self.code.len();
 
-        self.scope().set_return(s_return);
+        self.scope().set_end(end);
         self.scope = 0;
+
+        end
     }
 
     pub fn build(&mut self) -> (Vec<Code>, Vec<Scope>) {

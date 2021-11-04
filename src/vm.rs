@@ -7,7 +7,7 @@ pub type InternalFunction = fn (&mut VM, args: &[Value]) -> Value;
 
 #[derive(Default, Debug)]
 pub struct Frame {
-    f_return: usize,
+    pub f_return: usize,
     environment: HashMap<String, Value>,
 }
 
@@ -136,17 +136,19 @@ impl VM {
 
                             self.push(result);
                         },
-                        // Value::Function(Function::User(_, scope)) => {
-                        //     let scope = self.scopes.get(scope).unwrap();
+                        Value::Function(Function::User(_, scope)) => {
+                            for arg in args {
+                                self.push(arg);
+                            }
 
-                        //     self.frames.push(Frame::new(scope.code()));
+                            let scope = self.scopes.get(scope).unwrap().clone();
 
-                        //     for arg in args {
-                        //         self.frame_mut().push(arg);
-                        //     }
+                            self.frames.push(Frame::new(self.ip));
 
-                        //     continue;
-                        // },
+                            self.goto(scope.start);
+
+                            continue;
+                        },
                         _ => unimplemented!()
                     };
 
@@ -156,9 +158,11 @@ impl VM {
                     let value = self.pop();
 
                     // Exit the current frame since we're returning and don't need it anymore.
-                    self.frames.pop();
+                    let frame = self.frames.pop().unwrap();
 
                     self.push(value);
+                    self.goto(frame.f_return);
+
                     self.next();
                 },
                 Code::Op(op) => {
@@ -210,7 +214,10 @@ impl VM {
                     } else {
                         self.next();
                     }
-                }
+                },
+                Code::Label(_, ip) => {
+                    self.goto(ip);
+                },
                 _ => unimplemented!("{:?}", code),
             }
         }
