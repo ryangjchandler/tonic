@@ -77,14 +77,6 @@ impl VM {
         }
     }
 
-    fn scope(&self, index: usize) -> &Scope {
-        self.scopes.get(index).unwrap()
-    }
-
-    fn scope_mut(&mut self, index: usize) -> &mut Scope {
-        self.scopes.get_mut(index).unwrap()
-    }
-
     pub fn add_function(&mut self, name: &'static str, callback: InternalFunction) {
         self.fns.insert(name.into(), Value::Function(Function::Internal(name, callback)));
     }
