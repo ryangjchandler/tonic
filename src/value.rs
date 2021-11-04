@@ -17,6 +17,7 @@ impl PartialEq for Value {
             (Value::String(l), Value::Number(r)) => l.as_str() == r.to_string().as_str(),
             (Value::Number(l), Value::String(r)) => l.to_string().as_str() == r.as_str(),
             (Value::Number(l), Value::Number(r)) => l == r,
+            (Value::Bool(l), Value::Bool(r)) => l == r,
             _ => unimplemented!()
         }
     }

@@ -12,6 +12,14 @@ pub struct Scope {
 }
 
 impl Scope {
+    pub fn goto(&mut self, ip: usize) {
+        self.ip = ip;
+    }
+
+    pub fn replace(&mut self, ip: usize, code: Code) {
+        self.code[ip] = code;
+    }
+
     pub fn runnable(&self) -> bool {
         self.ip < self.code.len()
     }
@@ -37,6 +45,10 @@ impl Scope {
 
     pub fn set(&mut self, name: String, value: Value) {
         self.environment.insert(name, value);
+    }
+
+    pub fn len(&self) -> usize {
+        self.code.len()
     }
 
     pub fn next(&mut self) {
@@ -88,6 +100,41 @@ impl Compiler {
 
                 self.emit(Code::Constant(Value::Function(Function::User(identifier.clone(), scope_index))));
                 self.emit(Code::Set(identifier));
+            },
+            Statement::If { condition, then, otherwise } => {
+                // Compile the expression.
+                self.compile_expression(condition);
+
+                let jump_if_ip = self.scope().len();
+                self.emit(Code::JumpIfElse(9999, 9999));
+
+                // Compile the `then` block.
+                let then_start = self.scope().len();
+
+                for statement in then {
+                    self.compile_statement(statement);
+                }
+
+                let then_jump_ip = self.scope().len();
+                self.emit(Code::Jump(9999));
+
+                // Compile the `otherwise` block.
+                let otherwise_start = self.scope().len();
+
+                // Replace the conditional jump since we know where the blocks being now.
+                self.scope().replace(jump_if_ip, Code::JumpIfElse(then_start, otherwise_start));
+
+                for statement in otherwise {
+                    self.compile_statement(statement);
+                }
+
+                let otherwise_jump_ip = self.scope().len();
+                self.emit(Code::Jump(9999));
+
+                let end_ip = self.scope().len();
+
+                self.scope().replace(then_jump_ip, Code::Jump(end_ip));
+                self.scope().replace(otherwise_jump_ip, Code::Jump(end_ip));
             },
             Statement::Expression { expression } => {
                 self.compile_expression(expression);

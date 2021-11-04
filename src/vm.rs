@@ -134,6 +134,18 @@ impl VM {
 
                     self.scope_mut().next();
                 },
+                Code::Jump(ip) => {
+                    self.scope_mut().goto(ip);
+                },
+                Code::JumpIfElse(truthy, falsy) => {
+                    let value = self.scope_mut().pop();
+
+                    if value == Value::Bool(true) {
+                        self.scope_mut().goto(truthy);
+                    } else {
+                        self.scope_mut().goto(falsy);
+                    }
+                },
                 _ => unimplemented!("{:?}", code),
             }
         }

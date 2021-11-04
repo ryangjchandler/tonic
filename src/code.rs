@@ -9,6 +9,8 @@ pub enum Code {
     // `usize` here represents number of arguments that were sent across.
     // This will let us pop the values off the stack before calling the function.
     Call(usize),
+    Jump(usize),
+    JumpIfElse(usize, usize),
     Pop,
     Send,
     Return,
