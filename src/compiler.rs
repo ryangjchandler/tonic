@@ -4,55 +4,20 @@ use std::collections::HashMap;
 
 #[derive(Debug, Default, Clone)]
 pub struct Scope {
-    ip: usize,
     code: Vec<Code>,
-    stack: Vec<Value>,
-    sp: usize,
-    environment: HashMap<String, Value>,
 }
 
 impl Scope {
-    pub fn goto(&mut self, ip: usize) {
-        self.ip = ip;
-    }
-
     pub fn replace(&mut self, ip: usize, code: Code) {
         self.code[ip] = code;
-    }
-
-    pub fn runnable(&self) -> bool {
-        self.ip < self.code.len()
-    }
-
-    pub fn current(&self) -> Code {
-        self.code.get(self.ip).unwrap().clone()
-    }
-
-    pub fn push(&mut self, value: Value) -> usize {
-        self.sp += 1;
-        self.stack.push(value);
-        self.sp
-    }
-
-    pub fn pop(&mut self) -> Value {
-        self.sp = self.sp.saturating_sub(1);
-        self.stack.pop().unwrap()
-    }
-
-    pub fn get(&self, name: String) -> Value {
-        self.environment.get(&name).cloned().unwrap()
-    }
-
-    pub fn set(&mut self, name: String, value: Value) {
-        self.environment.insert(name, value);
     }
 
     pub fn len(&self) -> usize {
         self.code.len()
     }
 
-    pub fn next(&mut self) {
-        self.ip += 1
+    pub fn code(&self) -> Vec<Code> {
+        self.code.clone()
     }
 }
 
