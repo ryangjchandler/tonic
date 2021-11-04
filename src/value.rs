@@ -1,4 +1,5 @@
 use crate::vm::InternalFunction;
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -22,6 +23,31 @@ impl PartialEq for Value {
 }
 
 impl Eq for Value {}
+
+impl PartialOrd for Value {
+    fn partial_cmp(&self, other: &Value) -> Option<Ordering> {
+        match (self, other) {
+            (Value::String(l), Value::String(r)) => if l < r { Some(Ordering::Less) } else if l > r { Some(Ordering::Greater) } else { Some(Ordering::Equal) },
+            (Value::String(l), Value::Number(r)) => {
+                let l_str = l.as_str();
+                let r_string = r.to_string();
+                let r_str = r_string.as_str();
+
+                if l_str < r_str { Some(Ordering::Less) } else if l_str > r_str { Some(Ordering::Greater) } else { Some(Ordering::Equal) }
+            },
+            (Value::Number(l), Value::String(r)) => {
+                let l_string = l.to_string();
+                let l_str = l_string.as_str();
+
+                let r_str = r.as_str();
+
+                if l_str < r_str { Some(Ordering::Less) } else if l_str > r_str { Some(Ordering::Greater) } else { Some(Ordering::Equal) }
+            },
+            (Value::Number(l), Value::Number(r)) => if l < r { Some(Ordering::Less) } else if l > r { Some(Ordering::Greater) } else { Some(Ordering::Equal) },
+            _ => unimplemented!()
+        }
+    }
+}
 
 impl Value {
     pub fn to_f64(self) -> f64 {

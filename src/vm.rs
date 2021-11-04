@@ -123,6 +123,10 @@ impl VM {
                             self.scope_mut().push(match op {
                                 Op::Equals => Value::Bool(left == right),
                                 Op::NotEquals => Value::Bool(left != right),
+                                Op::GreaterThan => Value::Bool(left > right),
+                                Op::LessThan => Value::Bool(left < right),
+                                Op::GreaterThanEquals => Value::Bool(left >= right),
+                                Op::LessThanEquals => Value::Bool(left <= right),
                                 _ => unimplemented!("op: {:?}, left: {:?}, right: {:?}", op, left, right),
                             });
                         }
