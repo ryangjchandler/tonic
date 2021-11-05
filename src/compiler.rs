@@ -23,6 +23,8 @@ pub struct Compiler {
     code: Vec<Code>,
     scopes: Vec<Scope>,
     scope: usize,
+    breakable_ips: Vec<Vec<usize>>,
+    continuable_ips: Vec<Vec<usize>>,
 }
 
 impl Compiler {
@@ -35,6 +37,8 @@ impl Compiler {
                 Scope::default(),
             ],
             scope: 0,
+            breakable_ips: Vec::new(),
+            continuable_ips: Vec::new(),
         }
     }
 
@@ -115,6 +119,9 @@ impl Compiler {
                 // Keep track of where the falsy jump is so that we can replace it later on.
                 let jump_if_false = self.emit(Code::JumpFalse(9999));
 
+                self.enter_breakable_structure();
+                self.enter_continuable_structure();
+
                 // Compile the body of the statement.
                 for statement in then {
                     self.compile_statement(statement);
@@ -124,10 +131,32 @@ impl Compiler {
                 self.emit(Code::Jump(pre_condition_ip));
 
                 let after_body_ip = self.len();
+                
+                // This is little hacky, but `break` and `continue` statements emit jump
+                // codes that need to be updated to point to the correct place.
+                let breakable_ips = self.leave_breakable_structure();
+                for ip in breakable_ips {
+                    self.replace(ip, Code::Jump(after_body_ip));
+                }
+
+                let continuable_ips = self.leave_continuable_structure();
+                for ip in continuable_ips {
+                    self.replace(ip, Code::Jump(pre_condition_ip));
+                }
 
                 // Update the `JumpFalse` to jump to this position since the body
                 // of the statement has ended.
                 self.replace(jump_if_false, Code::JumpFalse(after_body_ip));
+            },
+            Statement::Break => {
+                let ip = self.emit(Code::Jump(9999));
+
+                self.breakable_ips.last_mut().unwrap().push(ip);
+            },
+            Statement::Continue => {
+                let ip = self.emit(Code::Jump(9999));
+
+                self.continuable_ips.last_mut().unwrap().push(ip);
             },
             Statement::Return { expression } => {
                 self.compile_expression(expression);
@@ -150,6 +179,9 @@ impl Compiler {
             },
             Expression::Identifier(s) => {
                 self.emit(Code::Get(s));
+            },
+            Expression::Bool(b) => {
+                self.emit(Code::Constant(Value::Bool(b)));
             },
             Expression::Infix(left, op, right) => {
                 self.compile_expression(*left);
@@ -178,6 +210,22 @@ impl Compiler {
             },
             _ => unimplemented!("{:?}", expression)
         }
+    }
+
+    pub fn enter_breakable_structure(&mut self) {
+        self.breakable_ips.push(Vec::new());
+    }
+
+    pub fn leave_breakable_structure(&mut self) -> Vec<usize> {
+        self.breakable_ips.pop().unwrap()
+    }
+
+    pub fn enter_continuable_structure(&mut self) {
+        self.continuable_ips.push(Vec::new());
+    }
+
+    pub fn leave_continuable_structure(&mut self) -> Vec<usize> {
+        self.continuable_ips.pop().unwrap()
     }
 
     pub fn replace(&mut self, ip: usize, code: Code) {
