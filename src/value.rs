@@ -1,5 +1,7 @@
 use crate::vm::InternalFunction;
 use std::cmp::Ordering;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -7,7 +9,7 @@ pub enum Value {
     Number(f64),
     Function(Function),
     Bool(bool),
-    Array(Vec<Self>),
+    Array(Rc<RefCell<Vec<Self>>>),
     Null,
 }
 

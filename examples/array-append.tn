@@ -1,0 +1,5 @@
+let items = [1, 2]
+
+items[] = 2
+
+dbg(items)

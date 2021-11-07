@@ -8,6 +8,8 @@ pub enum Code {
     Array(usize),
     Set(String),
     Get(String),
+    SetProperty,
+    Append,
     Op(Op),
     // `usize` here represents number of arguments that were sent across.
     // This will let us pop the values off the stack before calling the function.

@@ -12,7 +12,7 @@ pub enum Expression {
     Call(Box<Expression>, Vec<Expression>),
     Assign(Box<Expression>, Box<Expression>),
     SetProperty(Box<Expression>, Box<Expression>),
-    GetProperty(Box<Expression>, Box<Expression>),
+    GetProperty(Box<Expression>, Option<Box<Expression>>),
 }
 
 impl Expression {

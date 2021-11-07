@@ -2,6 +2,8 @@ use crate::compiler::Scope;
 use crate::{Code, Value, Op};
 use crate::value::Function;
 use std::collections::HashMap;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub type InternalFunction = fn (&mut VM, args: &[Value]) -> Value;
 
@@ -106,7 +108,7 @@ impl VM {
                         items.push(self.pop());
                     }
 
-                    self.push(Value::Array(items));
+                    self.push(Value::Array(Rc::new(RefCell::new(items))));
                     self.next();
                 },
                 Code::Get(s) => {
@@ -127,7 +129,7 @@ impl VM {
                             self.fns.insert(s, value);
                         },
                         _ => self.frame_mut().set(s, value),
-                    }
+                    };
 
                     self.next();
                 },
@@ -227,6 +229,19 @@ impl VM {
                 },
                 Code::Label(_, ip) => {
                     self.goto(ip);
+                },
+                Code::Append => {
+                    let target = self.pop();
+                    let value = self.pop();
+
+                    match target {
+                        Value::Array(items) => {
+                            items.borrow_mut().push(value);
+                        }
+                        _ => unimplemented!(),
+                    };
+                    
+                    self.next();
                 },
                 _ => unimplemented!("{:?}", code),
             }

@@ -218,7 +218,19 @@ impl Compiler {
                 self.compile_expression(*value);
 
                 match target {
-                    box Expression::Identifier(i) => self.emit(Code::Set(i)),
+                    box Expression::Identifier(i) => {
+                        self.emit(Code::Set(i));
+                    },
+                    box Expression::GetProperty(target, property) => {
+                        self.compile_expression(*target);
+
+                        if property.is_none() {
+                            self.emit(Code::Append);
+                        } else {
+                            self.compile_expression(*property.unwrap());
+                            self.emit(Code::SetProperty);
+                        }
+                    },
                     _ => unimplemented!("assign to: {:?}", *target),
                 };
             },
