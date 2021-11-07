@@ -10,6 +10,7 @@ mod compiler;
 mod value;
 mod code;
 mod vm;
+mod passes;
 
 pub use token::{TokenKind, Token, Span};
 pub use lexer::Lexer;
@@ -35,7 +36,7 @@ fn main() {
 
     let (filename, source) = source();
 
-    let ast = match Parser::new(Lexer::new(&source[..])).parse() {
+    let mut ast = match Parser::new(Lexer::new(&source[..])).parse() {
         Ok(ast) => ast,
         Err(ParserError { line, span, err }) => {
             Report::build(ReportKind::Error, &filename, line)
@@ -77,6 +78,8 @@ fn main() {
             exit(1);
         },
     };
+
+    passes::pass(&mut ast);
 
     #[cfg(debug_assertions)]
     dbg!(&ast);

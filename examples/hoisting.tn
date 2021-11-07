@@ -1,0 +1,5 @@
+dbg(name())
+
+fn name() {
+    return "Ryan"
+}
