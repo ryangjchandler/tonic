@@ -99,6 +99,16 @@ impl VM {
                     self.push(s);
                     self.next();
                 },
+                Code::Array(len) => {
+                    let mut items: Vec<Value> = Vec::new();
+
+                    for _ in 0..len {
+                        items.push(self.pop());
+                    }
+
+                    self.push(Value::Array(items));
+                    self.next();
+                },
                 Code::Get(s) => {
                     let value = if self.fns.contains_key(&s) {
                         self.fns.get(&s).cloned().unwrap()

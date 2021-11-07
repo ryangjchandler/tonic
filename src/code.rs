@@ -5,6 +5,7 @@ pub enum Code {
     // name of the label (function name), position to jump to to skip over function
     Label(String, usize),
     Constant(Value),
+    Array(usize),
     Set(String),
     Get(String),
     Op(Op),

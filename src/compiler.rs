@@ -183,6 +183,20 @@ impl Compiler {
             Expression::Bool(b) => {
                 self.emit(Code::Constant(Value::Bool(b)));
             },
+            Expression::Array(mut items) => {
+                // Reverse the items now so we don't need to do it in the VM.
+                items.reverse();
+
+                let len = items.len();
+
+                for item in items {
+                    // Compile all of the items now.
+                    self.compile_expression(item);
+                }
+
+                // Tell the VM to make a new array and push to the stack.
+                self.emit(Code::Array(len));
+            },
             Expression::Infix(left, op, right) => {
                 self.compile_expression(*left);
                 self.compile_expression(*right);
