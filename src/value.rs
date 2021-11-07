@@ -7,6 +7,7 @@ pub enum Value {
     Number(f64),
     Function(Function),
     Bool(bool),
+    Array(Vec<Self>),
     Null,
 }
 
