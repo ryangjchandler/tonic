@@ -14,6 +14,7 @@ pub enum ParserErrorType {
     InvalidBreakableScope,
     InvalidContinuableScope,
     UnexpectedToken(String, Option<String>),
+    NestedFunctionDefinition,
     ExpectedIdentifier,
 }
 
@@ -26,12 +27,19 @@ pub struct Parser<'p> {
     current: Token,
     peek: Token,
     in_breakable_scope: bool,
+    scope_depth: usize,
 }
 
 #[allow(dead_code)]
 impl<'p> Parser<'p> {
     pub fn new(lexer: Lexer<'p>) -> Self {
-        Self { lexer, current: Token::eof(), peek: Token::eof(), in_breakable_scope: false }
+        Self {
+            lexer,
+            current: Token::eof(),
+            peek: Token::eof(),
+            in_breakable_scope: false,
+            scope_depth: 0,
+        }
     }
 
     pub fn read(&mut self) {
@@ -96,6 +104,16 @@ impl<'p> Parser<'p> {
     }
 
     fn parse_fn(&mut self) -> ParserResult<Statement> {
+        if self.scope_depth > 0 {
+            return Err(ParserError {
+                line: self.current.line,
+                span: self.current.span,
+                err: ParserErrorType::NestedFunctionDefinition,
+            });
+        }
+
+        self.scope_depth += 1;
+
         self.read();
 
         let identifier = self.identifier()?;
@@ -113,6 +131,8 @@ impl<'p> Parser<'p> {
         let body = self.block(TokenKind::RightBrace)?;
 
         self.expect(TokenKind::RightBrace)?;
+
+        self.scope_depth -= 1;
 
         Ok(Statement::Function {
             identifier, parameters, return_type, body

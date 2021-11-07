@@ -51,6 +51,7 @@ fn main() {
                         }
                     },
                     ParserErrorType::ExpectedIdentifier => "expected a valid identifier".to_string(),
+                    ParserErrorType::NestedFunctionDefinition => "function definition is nested".to_string(),
                     _ => unimplemented!(),
                 })
                 .with_code(match err {
@@ -58,6 +59,7 @@ fn main() {
                     ParserErrorType::InvalidContinuableScope => 33,
                     ParserErrorType::UnexpectedToken(..) => 1,
                     ParserErrorType::ExpectedIdentifier => 2,
+                    ParserErrorType::NestedFunctionDefinition => 3,
                     _ => unimplemented!(),
                 })
                 .with_label(
@@ -67,6 +69,7 @@ fn main() {
                             ParserErrorType::InvalidContinuableScope => "not inside of continuable structure.",
                             ParserErrorType::UnexpectedToken(..) => "unexpected token",
                             ParserErrorType::ExpectedIdentifier => "expected identifier",
+                            ParserErrorType::NestedFunctionDefinition => "must be a top-level statement",
                             _ => unimplemented!()
                         })
                         .with_color(Color::Red)
