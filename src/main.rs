@@ -1,4 +1,5 @@
 #![feature(box_patterns)]
+#![feature(io_read_to_string)]
 
 mod token;
 mod lexer;
@@ -100,6 +101,14 @@ fn main() {
         }
 
         Value::Null
+    });
+
+    vm.add_function("stdin", |_: &mut vm::VM, args: &[Value]| {
+        assert!(args.len() == 0);
+
+        let stdin = std::io::read_to_string(&mut std::io::stdin()).unwrap();
+
+        Value::String(stdin)
     });
 
     vm.run();
