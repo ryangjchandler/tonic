@@ -242,6 +242,22 @@ impl<'p> Parser<'p> {
 
                 Expression::Array(items)
             },
+            TokenKind::Fn => {
+                self.expect(TokenKind::Fn)?;
+
+                self.expect(TokenKind::LeftParen)?;
+
+                let params = self.parameters()?;
+
+                self.expect(TokenKind::RightParen)?;
+                self.expect(TokenKind::LeftBrace)?;
+
+                let body = self.block(TokenKind::RightBrace)?;
+
+                self.expect(TokenKind::RightBrace)?;
+
+                Expression::Closure(params, body)
+            },
             _ if is_prefix(&self.current.kind) => {
                 let kind = self.current.kind.clone();
 

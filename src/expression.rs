@@ -1,4 +1,5 @@
 use crate::TokenKind;
+use crate::{Parameter, Statement};
 
 #[derive(Debug, PartialEq)]
 pub enum Expression {
@@ -13,6 +14,7 @@ pub enum Expression {
     Assign(Box<Expression>, Box<Expression>),
     SetProperty(Box<Expression>, Box<Expression>),
     GetProperty(Box<Expression>, Option<Box<Expression>>),
+    Closure(Vec<Parameter>, Vec<Statement>),
 }
 
 impl Expression {
