@@ -1,5 +1,7 @@
 use crate::{Statement, Expression, Code, Value, Function};
+use rand::random;
 use std::vec::IntoIter;
+use std::collections::HashMap;
 
 #[derive(Debug, Default, Clone)]
 pub struct Scope {
@@ -202,6 +204,33 @@ impl Compiler {
                 self.compile_expression(*right);
 
                 self.emit(Code::Op(op));
+            },
+            Expression::Closure(mut parameters, body) => {
+                let closure_name = format!("closure_{}", random::<u8>());
+
+                // TODO: This feels dirty :/
+                let label_position = self.emit(Code::Label(closure_name.clone(), 9999));
+                
+                let scope_index = self.enter_scope();
+
+                parameters.reverse();
+                for parameter in parameters {
+                    self.emit(Code::Set(parameter.name));
+                }
+
+                for statement in body {
+                    self.compile_statement(statement);
+                }
+
+                if ! matches!(self.code.last(), Some(&Code::Return)) {
+                    self.emit(Code::Constant(Value::Null));
+                    self.emit(Code::Return);
+                }
+
+                let closure_end_position = self.leave_scope();
+
+                self.replace(label_position, Code::Label(closure_name, closure_end_position));
+                self.emit(Code::Closure(Function::Closure(scope_index, HashMap::new())));
             },
             Expression::Call(callable, args) => {
                 self.compile_expression(*callable);

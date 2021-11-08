@@ -21,6 +21,14 @@ impl Frame {
         }
     }
 
+    pub fn new_with(f_return: usize, environment: HashMap<String, Value>) -> Self {
+        Self {
+            f_return,
+            environment,
+            ..Default::default()
+        }
+    }
+
     pub fn get(&self, name: String) -> Value {
         self.environment.get(&name).cloned().unwrap()
     }
@@ -140,6 +148,21 @@ impl VM {
 
                     self.next();
                 },
+                Code::Closure(mut closure) => {
+                    let environment = self.frame().environment.clone();
+
+                    match closure {
+                        Function::Closure(_, ref mut env) => {
+                            for (k, v) in environment.into_iter() {
+                                env.insert(k, v);
+                            }
+                        },
+                        _ => unreachable!()
+                    }
+
+                    self.push(Value::Function(closure));
+                    self.next();
+                },
                 Code::Call(number_of_args) => {
                     let mut args = Vec::with_capacity(number_of_args);
 
@@ -163,6 +186,19 @@ impl VM {
                             let scope = self.scopes.get(scope).unwrap().clone();
 
                             self.frames.push(Frame::new(self.ip));
+
+                            self.goto(scope.start);
+
+                            continue;
+                        },
+                        Value::Function(Function::Closure(scope, environment)) => {
+                            for arg in args {
+                                self.push(arg);
+                            }
+
+                            let scope = self.scopes.get(scope).unwrap().clone();
+
+                            self.frames.push(Frame::new_with(self.ip, environment));
 
                             self.goto(scope.start);
 
