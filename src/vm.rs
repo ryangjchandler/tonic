@@ -188,28 +188,19 @@ impl VM {
                     let right = self.pop();
                     let left = self.pop();
 
-                    match (left.clone(), right.clone()) {
-                        (Value::Number(l), Value::Number(r)) if op.math() => {
-                            self.push(Value::Number(match op {
-                                Op::Add => l + r,
-                                Op::Subtract => l - r,
-                                Op::Multiply => l * r,
-                                Op::Divide => l / r,
-                                _ => unreachable!()
-                            }));
-                        },
-                        _ => {
-                            self.push(match op {
-                                Op::Equals => Value::Bool(left == right),
-                                Op::NotEquals => Value::Bool(left != right),
-                                Op::GreaterThan => Value::Bool(left > right),
-                                Op::LessThan => Value::Bool(left < right),
-                                Op::GreaterThanEquals => Value::Bool(left >= right),
-                                Op::LessThanEquals => Value::Bool(left <= right),
-                                _ => unimplemented!("op: {:?}, left: {:?}, right: {:?}", op, left, right),
-                            });
-                        }
-                    };
+                    self.push(match op {
+                        Op::Add => left + right,
+                        Op::Subtract => left - right,
+                        Op::Multiply => left * right,
+                        Op::Divide => left / right,
+                        Op::Equals => Value::Bool(left == right),
+                        Op::NotEquals => Value::Bool(left != right),
+                        Op::GreaterThan => Value::Bool(left > right),
+                        Op::GreaterThanEquals => Value::Bool(left >= right),
+                        Op::LessThan => Value::Bool(left < right),
+                        Op::LessThanEquals => Value::Bool(left <= right),
+                        _ => unimplemented!()
+                    });
 
                     self.next();
                 },
