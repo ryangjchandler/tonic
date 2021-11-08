@@ -111,7 +111,7 @@ impl VM {
 
                                 Value::Array(Rc::new(RefCell::new(items)))
                             },
-                            v @ _ => v,
+                            v => v,
                         });
                     }
 

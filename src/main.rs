@@ -104,7 +104,7 @@ fn main() {
     });
 
     vm.add_function("stdin", |_: &mut vm::VM, args: &[Value]| {
-        assert!(args.len() == 0);
+        assert!(! args.is_empty());
 
         let stdin = std::io::read_to_string(&mut std::io::stdin()).unwrap();
 

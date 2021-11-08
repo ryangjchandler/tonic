@@ -224,11 +224,11 @@ impl Compiler {
                     box Expression::GetProperty(target, property) => {
                         self.compile_expression(*target);
 
-                        if property.is_none() {
-                            self.emit(Code::Append);
-                        } else {
-                            self.compile_expression(*property.unwrap());
+                        if let Some(property) = property {
+                            self.compile_expression(*property);
                             self.emit(Code::SetProperty);
+                        } else {
+                            self.emit(Code::Append);
                         }
                     },
                     _ => unimplemented!("assign to: {:?}", *target),
