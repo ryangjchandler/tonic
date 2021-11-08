@@ -262,6 +262,19 @@ impl VM {
 
                     self.next();
                 },
+                Code::GetProperty => {
+                    let property = self.pop();
+                    let target = self.pop();
+
+                    match target {
+                        Value::Array(items) => {
+                            self.push(items.borrow().get(property.to_usize()).unwrap().clone());
+                        },
+                        _ => unreachable!()
+                    }
+
+                    self.next();
+                },
                 _ => unimplemented!("{:?}", code),
             }
         }

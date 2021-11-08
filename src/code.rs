@@ -9,6 +9,7 @@ pub enum Code {
     Set(String),
     Get(String),
     SetProperty,
+    GetProperty,
     Append,
     Op(Op),
     // `usize` here represents number of arguments that were sent across.

@@ -10,6 +10,6 @@ array[] = 6
 
 dbg(b)
 
-array[4] = "testing"
+array[3] = "testing"
 
-dbg(array)
+dbg(array[3])
