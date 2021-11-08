@@ -270,6 +270,11 @@ impl VM {
                         Value::Array(items) => {
                             self.push(items.borrow().get(property.to_usize()).unwrap().clone());
                         },
+                        Value::String(s) => {
+                            let mut chars = s.chars();
+
+                            self.push(Value::String(String::from(chars.nth(property.to_usize()).unwrap())));
+                        },
                         _ => unreachable!()
                     }
 

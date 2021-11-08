@@ -1,0 +1,8 @@
+let name = "Ryan"
+let i = 0
+
+while i < len(name) {
+    dbg(name[i])
+
+    i = i + 1
+}

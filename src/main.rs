@@ -111,6 +111,16 @@ fn main() {
         Value::String(stdin)
     });
 
+    vm.add_function("len", |_: &mut vm::VM, args: &[Value]| {
+        let arg = args.first().unwrap();
+
+        Value::Number(match arg {
+            Value::String(s) => s.len() as f64,
+            Value::Array(i) => i.borrow().len() as f64,
+            _ => unreachable!()
+        })
+    });
+
     vm.run();
 }
 
