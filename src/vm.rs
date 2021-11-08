@@ -105,7 +105,14 @@ impl VM {
                     let mut items: Vec<Value> = Vec::new();
 
                     for _ in 0..len {
-                        items.push(self.pop());
+                        items.push(match self.pop() {
+                            Value::Array(items) => {
+                                let items = items.borrow().clone();
+
+                                Value::Array(Rc::new(RefCell::new(items)))
+                            },
+                            v @ _ => v,
+                        });
                     }
 
                     self.push(Value::Array(Rc::new(RefCell::new(items))));

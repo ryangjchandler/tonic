@@ -1,3 +1,11 @@
 let array = [1, 2, 3]
 
 dbg(array)
+
+let b = [array, 4, 5]
+
+dbg(b)
+
+array[] = 6
+
+dbg(b)
