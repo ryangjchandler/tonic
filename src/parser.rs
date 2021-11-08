@@ -258,6 +258,15 @@ impl<'p> Parser<'p> {
 
                 Expression::Closure(params, body)
             },
+            TokenKind::LeftParen => {
+                self.expect(TokenKind::LeftParen)?;
+
+                let expression = self.expression(0)?;
+
+                self.expect(TokenKind::RightParen)?;
+
+                expression
+            },
             _ if is_prefix(&self.current.kind) => {
                 let kind = self.current.kind.clone();
 
