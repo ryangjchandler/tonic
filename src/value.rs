@@ -2,6 +2,7 @@ use crate::vm::InternalFunction;
 use std::cmp::Ordering;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::ops::{Add, Sub, Mul, Div};
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -11,6 +12,77 @@ pub enum Value {
     Bool(bool),
     Array(Rc<RefCell<Vec<Self>>>),
     Null,
+}
+
+impl Add for Value {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Value::String(l), Value::String(r)) => {
+                Value::String(l + &r)
+            },
+            (Value::String(l), Value::Number(r)) => {
+                Value::String(format!("{}{}", l, r))
+            },
+            (Value::Number(l), Value::String(r)) => {
+                Value::String(format!("{}{}", l, r))
+            },
+            (Value::Number(l), Value::Number(r)) => {
+                Value::Number(l + r)
+            },
+            _ => unimplemented!()
+        }
+    }
+}
+
+impl Sub for Value {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Value::Number(l), Value::Number(r)) => {
+                Value::Number(l - r)
+            },
+            _ => unimplemented!()
+        }
+    }
+}
+
+impl Mul for Value {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Value::Number(l), Value::Number(r)) => {
+                Value::Number(l * r)
+            },
+            (Value::String(l), Value::Number(r)) => {
+                let left = l.repeat(r as usize);
+
+                Value::String(left)
+            },
+            (Value::Number(l), Value::String(r)) => {
+                let right = r.repeat(l as usize);
+
+                Value::String(right)
+            },
+            _ => unimplemented!()
+        }
+    }
+}
+
+impl Div for Value {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Value::Number(l), Value::Number(r)) => {
+                Value::Number(l / r)
+            },
+            _ => unimplemented!()
+        }
+    }
 }
 
 impl PartialEq for Value {
