@@ -9,3 +9,7 @@ dbg(b)
 array[] = 6
 
 dbg(b)
+
+array[3] = "testing"
+
+dbg(array[3])

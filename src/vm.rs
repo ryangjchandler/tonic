@@ -241,6 +241,40 @@ impl VM {
                     
                     self.next();
                 },
+                Code::SetProperty => {
+                    let property = self.pop();
+                    let target = self.pop();
+                    let value = self.pop();
+
+                    match target {
+                        Value::Array(i) => {
+                            let property = property.to_usize();
+                            let mut i = i.borrow_mut();
+
+                            if i.len() <= property {
+                                panic!("array has length {}, cannot set value of index {}", i.len(), property);
+                            }
+
+                            i[property] = value;
+                        },
+                        _ => unreachable!("set property on: {:?}", target)
+                    };
+
+                    self.next();
+                },
+                Code::GetProperty => {
+                    let property = self.pop();
+                    let target = self.pop();
+
+                    match target {
+                        Value::Array(items) => {
+                            self.push(items.borrow().get(property.to_usize()).unwrap().clone());
+                        },
+                        _ => unreachable!()
+                    }
+
+                    self.next();
+                },
                 _ => unimplemented!("{:?}", code),
             }
         }

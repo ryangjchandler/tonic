@@ -234,6 +234,12 @@ impl Compiler {
                     _ => unimplemented!("assign to: {:?}", *target),
                 };
             },
+            Expression::GetProperty(target, property) => {
+                self.compile_expression(*target);
+                self.compile_expression(*property.unwrap());
+
+                self.emit(Code::GetProperty);
+            },
             _ => unimplemented!("{:?}", expression)
         }
     }

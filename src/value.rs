@@ -132,6 +132,10 @@ impl Value {
             _ => unreachable!()
         }
     }
+
+    pub fn to_usize(self) -> usize {
+        self.to_f64() as usize
+    }
 }
 
 #[derive(Clone)]
