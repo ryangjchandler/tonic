@@ -1,5 +1,5 @@
 // The `Type` enumeration is the single-source of truth for type strings in Tonic.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Type {
     String,
     Bool,

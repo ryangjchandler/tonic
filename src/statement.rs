@@ -40,7 +40,7 @@ pub enum Statement {
 /// The `Parameter` struct is used to represent a function parameter.
 /// 
 /// It stores information about the name of the parameter and the expected type of the parameter.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Parameter {
     pub name: String,
     pub r#type: Option<Type>,

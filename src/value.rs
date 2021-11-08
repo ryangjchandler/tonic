@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::ops::{Add, Sub, Mul, Div};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -141,6 +142,7 @@ impl Value {
 #[derive(Clone)]
 pub enum Function {
     User(String, usize),
+    Closure(usize, HashMap<String, Value>),
     Internal(&'static str, InternalFunction),
 }
 
@@ -149,6 +151,7 @@ impl std::fmt::Debug for Function {
         match self {
             Function::User(name, _) => write!(f, "{}()", name),
             Function::Internal(name, _) => write!(f, "InternalFunction<{}>", name),
+            Function::Closure(scope, _) => write!(f, "Closure<{}>", scope),
         }
     }
 }

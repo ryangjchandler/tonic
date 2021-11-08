@@ -1,10 +1,12 @@
-use crate::{Value, Op};
+use crate::{Value, Op, Function};
 
 #[derive(Debug, Clone)]
 pub enum Code {
     // name of the label (function name), position to jump to to skip over function
     Label(String, usize),
     Constant(Value),
+    // A special code used to capture the current frame's environment and store alongside the closure.
+    Closure(Function),
     Array(usize),
     Set(String),
     Get(String),
