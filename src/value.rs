@@ -140,7 +140,7 @@ impl Display for Value {
                 write!(f, "{}", fmtd.join(", "))
             },
             Value::Null => write!(f, ""),
-            Value::Function(f) => write!(f, "{:?}", f),
+            Value::Function(func) => write!(f, "{:?}", func),
             _ => unimplemented!()
         }
     }
