@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::ops::{Add, Sub, Mul, Div};
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -121,6 +122,25 @@ impl PartialOrd for Value {
                 Some(l_str.cmp(r_str))
             },
             (Value::Number(l), Value::Number(r)) => if l < r { Some(Ordering::Less) } else if l > r { Some(Ordering::Greater) } else { Some(Ordering::Equal) },
+            _ => unimplemented!()
+        }
+    }
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Value::String(s) => write!(f, "{}", s),
+            Value::Number(n) => write!(f, "{}", n),
+            Value::Bool(b) => write!(f, "{}", b),
+            Value::Array(i) => {
+                let items = i.borrow();
+                let fmtd: Vec<String> = items.iter().map(|v| format!("{}", v)).collect();
+
+                write!(f, "{}", fmtd.join(", "))
+            },
+            Value::Null => write!(f, ""),
+            Value::Function(func) => write!(f, "{:?}", func),
             _ => unimplemented!()
         }
     }
