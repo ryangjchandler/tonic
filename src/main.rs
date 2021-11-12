@@ -111,6 +111,14 @@ fn main() {
         Value::String(stdin)
     });
 
+    vm.add_function("println", |_: &mut vm::VM, args: &[Value]| {
+        for arg in args {
+            println!("{}", arg)
+        }
+
+        Value::Null
+    });
+
     vm.add_function("len", |_: &mut vm::VM, args: &[Value]| {
         let arg = args.first().unwrap();
 
