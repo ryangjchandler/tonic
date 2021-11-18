@@ -45,10 +45,20 @@ impl JsCompiler {
             Expression::String(s) => format!("\"{}\"", s),
             Expression::Number(n) => format!("{}", n),
             Expression::Identifier(i) => format!("{}", i),
+            Expression::Bool(b) => format!("{}", b),
+            Expression::Array(items) => {
+                format!("[{}]", items.into_iter().map(|i| Self::expression(i)).collect::<Vec<String>>().join(", "))
+            },
             Expression::Call(callable, args) => {
                 let args: Vec<String> = args.into_iter().map(|a| Self::expression(a)).collect();
 
                 format!("{}({})", Self::expression(*callable), args.join(", "))
+            },
+            Expression::Prefix(op, right) => {
+                format!("{}{}", match op {
+                    Op::Subtract => "-",
+                    _ => unreachable!()
+                }, Self::expression(*right))
             },
             Expression::Infix(left, op, right) => {
                 format!("{} {} {}", Self::expression(*left), match op {

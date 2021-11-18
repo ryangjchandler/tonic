@@ -88,8 +88,22 @@ fn main() {
     let context = rquickjs::Context::full(&runtime).unwrap();
 
     context.with(|context| {
-        context.globals().set("println", rquickjs::Func::new("println", |arg: String| {
-            println!("{}", arg);
+        context.globals().set("println", rquickjs::Func::new("println", |arg: rquickjs::Value| {
+            use rquickjs::Type;
+
+            fn to_string(value: rquickjs::Value) -> String {
+                match value.type_of() {
+                    Type::String => value.into_string().unwrap().to_string().unwrap(),
+                    Type::Int => value.as_int().unwrap().to_string(),
+                    Type::Float => value.as_float().unwrap().to_string(),
+                    Type::Bool => value.as_bool().unwrap().to_string(),
+                    Type::Null => "null".to_owned(),
+                    Type::Array => value.into_array().unwrap().into_iter().map(|i| to_string(i.unwrap())).collect::<Vec<String>>().join(", "),
+                    _ => unimplemented!(),
+                }
+            }
+
+            println!("{}", to_string(arg))
         })).unwrap();
 
         context.eval::<(), _>(source).unwrap();
