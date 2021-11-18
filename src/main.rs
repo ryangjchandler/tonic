@@ -8,6 +8,7 @@ mod statement;
 mod expression;
 mod r#type;
 mod passes;
+mod js;
 
 pub use token::{TokenKind, Token, Span};
 pub use lexer::Lexer;
@@ -78,8 +79,20 @@ fn main() {
 
     passes::pass(&mut ast);
 
-    #[cfg(debug_assertions)]
-    dbg!(&ast);
+    let mut js_compiler = js::JsCompiler::new(ast.into_iter());
+    let source = js_compiler.compile();
+
+    println!("{}", source);
+
+    let context = quick_js::Context::new().unwrap();
+
+    context.add_callback("println", |arg: String| {
+        println!("{}", arg);
+
+        quick_js::JsValue::Null
+    }).unwrap();
+
+    context.eval(&source[..]).unwrap();
 }
 
 fn show_help() -> bool {
