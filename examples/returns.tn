@@ -1,5 +1,0 @@
-fn name() {
-    return "Ryan"
-}
-
-dbg(name())

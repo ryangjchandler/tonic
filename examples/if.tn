@@ -1,7 +1,0 @@
-let age = 99
-
-if age > 99 {
-    dbg(age)
-} else {
-    dbg("Not of age, sorry!")
-}
