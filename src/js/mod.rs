@@ -53,8 +53,15 @@ impl JsCompiler {
             Expression::Infix(left, op, right) => {
                 format!("{} {} {}", Self::expression(*left), match op {
                     Op::LessThan => "<",
+                    Op::GreaterThan => ">",
+                    Op::LessThanEquals => "<=",
+                    Op::GreaterThanEquals => ">=",
                     Op::Add => "+",
                     Op::Subtract => "-",
+                    Op::Multiply => "*",
+                    Op::Divide => "/",
+                    Op::Equals => "===",
+                    Op::NotEquals => "!==",
                     _ => unimplemented!()
                 }, Self::expression(*right))
             },
