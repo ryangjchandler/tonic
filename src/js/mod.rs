@@ -1,4 +1,4 @@
-use crate::{Statement, Expression};
+use crate::{Statement, Expression, Op};
 use std::vec::IntoIter;
 
 pub struct JsCompiler {
@@ -18,6 +18,24 @@ impl JsCompiler {
             Statement::Expression { expression } => {
                 format!("{};\n", Self::expression(expression))
             },
+            Statement::Function { identifier, parameters, body, .. } => {
+                format!(
+                    "function {}({}) {{\n{}}}",
+                    identifier,
+                    parameters.into_iter().map(|p| p.name).collect::<Vec<String>>().join(", "),
+                    body.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t\n")
+                )
+            },
+            Statement::If { condition, then, .. } => {
+                format!(
+                    "if ({}) {{\n{}\n}}",
+                    Self::expression(condition),
+                    then.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t"),
+                )
+            },
+            Statement::Return { expression } => {
+                format!("return {};", Self::expression(expression))
+            },
             _ => unimplemented!("js compile statement: {:?}", statement),
         }
     }
@@ -25,11 +43,20 @@ impl JsCompiler {
     fn expression(expression: Expression) -> String {
         match expression {
             Expression::String(s) => format!("\"{}\"", s),
+            Expression::Number(n) => format!("{}", n),
             Expression::Identifier(i) => format!("{}", i),
             Expression::Call(callable, args) => {
                 let args: Vec<String> = args.into_iter().map(|a| Self::expression(a)).collect();
 
                 format!("{}({})", Self::expression(*callable), args.join(", "))
+            },
+            Expression::Infix(left, op, right) => {
+                format!("{} {} {}", Self::expression(*left), match op {
+                    Op::LessThan => "<",
+                    Op::Add => "+",
+                    Op::Subtract => "-",
+                    _ => unimplemented!()
+                }, Self::expression(*right))
             },
             _ => unimplemented!("js compile expression: {:?}", expression)
         }

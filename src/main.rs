@@ -84,15 +84,16 @@ fn main() {
 
     println!("{}", source);
 
-    let context = quick_js::Context::new().unwrap();
+    let runtime = rquickjs::Runtime::new().unwrap();
+    let context = rquickjs::Context::full(&runtime).unwrap();
 
-    context.add_callback("println", |arg: String| {
-        println!("{}", arg);
+    context.with(|context| {
+        context.globals().set("println", rquickjs::Func::new("println", |arg: String| {
+            println!("{}", arg);
+        })).unwrap();
 
-        quick_js::JsValue::Null
-    }).unwrap();
-
-    context.eval(&source[..]).unwrap();
+        context.eval::<(), _>(source).unwrap();
+    });
 }
 
 fn show_help() -> bool {
