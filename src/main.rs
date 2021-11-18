@@ -7,10 +7,6 @@ mod parser;
 mod statement;
 mod expression;
 mod r#type;
-mod compiler;
-mod value;
-mod code;
-mod vm;
 mod passes;
 
 pub use token::{TokenKind, Token, Span};
@@ -19,9 +15,6 @@ pub use statement::{Statement, Parameter};
 pub use expression::{Expression, Op};
 pub use r#type::Type;
 pub use parser::{Parser, ParserError, ParserErrorType, Program};
-pub use compiler::Compiler;
-pub use value::{Value, Function};
-pub use code::Code;
 use ariadne::{Report, ReportKind, Label, Source, Color};
 
 const HELP: &str = "Tonic v0.1.0
@@ -87,49 +80,6 @@ fn main() {
 
     #[cfg(debug_assertions)]
     dbg!(&ast);
-
-    let (code, scopes) = Compiler::new(ast.into_iter()).build();
-
-    #[cfg(debug_assertions)]
-    dbg!(&code, &scopes);
-
-    let mut vm = vm::VM::new(code, scopes); 
-
-    vm.add_function("dbg", |_: &mut vm::VM, args: &[Value]| {
-        for arg in args {
-            println!("{:?}", arg);
-        }
-
-        Value::Null
-    });
-
-    vm.add_function("stdin", |_: &mut vm::VM, args: &[Value]| {
-        assert!(! args.is_empty());
-
-        let stdin = std::io::read_to_string(&mut std::io::stdin()).unwrap();
-
-        Value::String(stdin)
-    });
-
-    vm.add_function("println", |_: &mut vm::VM, args: &[Value]| {
-        for arg in args {
-            println!("{}", arg)
-        }
-
-        Value::Null
-    });
-
-    vm.add_function("len", |_: &mut vm::VM, args: &[Value]| {
-        let arg = args.first().unwrap();
-
-        Value::Number(match arg {
-            Value::String(s) => s.len() as f64,
-            Value::Array(i) => i.borrow().len() as f64,
-            _ => unreachable!()
-        })
-    });
-
-    vm.run();
 }
 
 fn show_help() -> bool {
