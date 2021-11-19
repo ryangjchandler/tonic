@@ -96,6 +96,13 @@ impl JsCompiler {
                     _ => unimplemented!()
                 }, Self::expression(*right))
             },
+            Expression::Closure(parameters, body) => {
+                format!(
+                    "({}) => {{\n{}}}",
+                    parameters.into_iter().map(|p| p.name).collect::<Vec<String>>().join(", "),
+                    body.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t")
+                )
+            },
             _ => unimplemented!("js compile expression: {:?}", expression)
         }
     }
