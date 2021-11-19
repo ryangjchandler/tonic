@@ -42,6 +42,13 @@ impl JsCompiler {
                     )
                 }
             },
+            Statement::While { condition, then } => {
+                format!(
+                    "while ({}) {{\n{}}}",
+                    Self::expression(condition),
+                    then.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t"),
+                )
+            },
             Statement::Return { expression } => {
                 format!("return {};", Self::expression(expression))
             },
@@ -70,6 +77,9 @@ impl JsCompiler {
                     Op::Subtract => "-",
                     _ => unreachable!()
                 }, Self::expression(*right))
+            },
+            Expression::Assign(target, value) => {
+                format!("{} = {}", Self::expression(*target), Self::expression(*value))
             },
             Expression::Infix(left, op, right) => {
                 format!("{} {} {}", Self::expression(*left), match op {
