@@ -45,6 +45,8 @@ impl JsCompiler {
             Statement::Return { expression } => {
                 format!("return {};", Self::expression(expression))
             },
+            Statement::Break => "break".to_owned(),
+            Statement::Continue => "continue".to_owned(),
             _ => unimplemented!("js compile statement: {:?}", statement),
         }
     }
