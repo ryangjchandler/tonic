@@ -26,12 +26,21 @@ impl JsCompiler {
                     body.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t\n")
                 )
             },
-            Statement::If { condition, then, .. } => {
-                format!(
-                    "if ({}) {{\n{}\n}}",
-                    Self::expression(condition),
-                    then.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t"),
-                )
+            Statement::If { condition, then, otherwise } => {
+                if otherwise.is_empty() {
+                    format!(
+                        "if ({}) {{\n{}\n}}",
+                        Self::expression(condition),
+                        then.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t"),
+                    )
+                } else {
+                    format!(
+                        "if ({}) {{\n{}\n}} else {{\n{}}}",
+                        Self::expression(condition),
+                        then.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t"),
+                        otherwise.into_iter().map(|b| Self::statement(b)).collect::<Vec<String>>().join("\t"),
+                    )
+                }
             },
             Statement::Return { expression } => {
                 format!("return {};", Self::expression(expression))
