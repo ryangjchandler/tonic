@@ -1,0 +1,9 @@
+[package]
+edition = "2021"
+name = "tonic-parser"
+version = "0.1.0"
+description = ""
+license = "MIT"
+
+[profile.release]
+debug = true

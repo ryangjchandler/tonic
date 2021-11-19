@@ -1,5 +1,0 @@
-if false {
-    println("True!")
-} else {
-    println("False :(")
-}

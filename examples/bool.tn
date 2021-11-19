@@ -1,3 +1,0 @@
-println(true)
-println(false)
-println(2 > 3)

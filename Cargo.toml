@@ -1,13 +1,6 @@
-[package]
-edition = "2021"
-name = "tonic"
-version = "0.1.0"
-description = ""
-license = "MIT"
-
-[dependencies]
-ariadne = "0.1.3"
-rquickjs = { version = "0.1.2", features = ["bindgen"] }
-
-[profile.release]
-debug = true
+[workspace]
+members = [
+    "crates/tonic",
+    "crates/tonic-parser",
+    "crates/js-builder"
+]

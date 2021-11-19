@@ -1,6 +1,0 @@
-let name = "Ryan"
-let closure = fn () {
-    println(name)
-}
-
-closure()
