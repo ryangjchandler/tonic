@@ -7,6 +7,7 @@ pub enum Expression {
     Bool(bool),
     Null,
     Array(Vec<Self>),
+    Infix(Box<Self>, String, Box<Self>),
     Identifier(String),
 }
 
@@ -29,6 +30,10 @@ impl Expression {
 
     pub fn identifier(id: String) -> Self {
         Self::Identifier(id)
+    }
+
+    pub fn infix(left: Expression, op: String, right: Expression) -> Self {
+        Self::Infix(Box::new(left), op, Box::new(right))
     }
 }
 
@@ -74,6 +79,18 @@ impl From<Vec<Self>> for Expression {
     }
 }
 
+impl From<(Expression, String, Expression)> for Expression {
+    fn from((left, op, right): (Expression, String, Expression)) -> Self {
+        Self::Infix(Box::new(left), op, Box::new(right))
+    }
+}
+
+impl From<(Box<Expression>, String, Box<Expression>)> for Expression {
+    fn from((left, op, right): (Box<Expression>, String, Box<Expression>)) -> Self {
+        Self::Infix(left, op, right)
+    }
+}
+
 impl Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", match self {
@@ -83,6 +100,7 @@ impl Display for Expression {
             Expression::Null => "null".into(),
             Expression::Array(items) => format!("[{}]", items.into_iter().map(|i| i.to_string()).collect::<Vec<String>>().join(", ")),
             Expression::Identifier(i) => i.to_string(),
+            Expression::Infix(left, op, right) => format!("{} {} {}", *left, op, *right),
             _ => unimplemented!()
         })
     }
@@ -117,5 +135,10 @@ mod tests {
     #[test]
     fn arrays() {
         assert_eq!("[1, 2, 3]", Expression::from(vec![1.into(), 2.into(), 3.into()]).to_string().as_str());
+    }
+
+    #[test]
+    fn infix() {
+        assert_eq!("1 + 2", Expression::from((Expression::from(1), "+".to_string(), Expression::from(2))).to_string().as_str());
     }
 }
