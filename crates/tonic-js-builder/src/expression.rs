@@ -1,12 +1,13 @@
 use std::fmt::{Display, Formatter, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expression {
     String(String),
     Number(f64),
     Bool(bool),
     Null,
     Array(Vec<Self>),
+    Identifier(String),
 }
 
 impl Expression {
@@ -24,6 +25,10 @@ impl Expression {
 
     pub fn null() -> Self {
         Self::Null
+    }
+
+    pub fn identifier(id: String) -> Self {
+        Self::Identifier(id)
     }
 }
 
@@ -77,6 +82,7 @@ impl Display for Expression {
             Expression::Bool(b) => b.to_string(),
             Expression::Null => "null".into(),
             Expression::Array(items) => format!("[{}]", items.into_iter().map(|i| i.to_string()).collect::<Vec<String>>().join(", ")),
+            Expression::Identifier(i) => i.to_string(),
             _ => unimplemented!()
         })
     }

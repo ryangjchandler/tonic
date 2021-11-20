@@ -1,7 +1,7 @@
 use crate::{Var, Expression};
 use std::fmt::{Result, Formatter, Display};
 
-type BuilderCallbackFunction<T> = fn (&mut T);
+pub type BuilderCallbackFunction<T> = fn (&mut T);
 
 #[derive(Debug)]
 pub struct Builder {
