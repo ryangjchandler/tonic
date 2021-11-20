@@ -1,4 +1,4 @@
-use crate::{Var, Expression};
+use crate::{Var, Expression, Function};
 use std::fmt::{Result, Formatter, Display};
 
 pub type BuilderCallbackFunction<T> = fn (&mut T);
@@ -21,6 +21,15 @@ impl Builder {
         builder(&mut var);
 
         self.source.push_str(&var.to_string());
+        self
+    }
+
+    pub fn function(&mut self, builder: BuilderCallbackFunction<Function>) -> &mut Self {
+        let mut function = Function::new();
+
+        builder(&mut function);
+        
+        self.source.push_str(&function.to_string());
         self
     }
 
