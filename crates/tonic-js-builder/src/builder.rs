@@ -33,7 +33,7 @@ impl Builder {
         self
     }
 
-    pub fn if_else(&mut self, condition: Expression, builder: BuilderCallbackFunction<IfElse>) -> &mut Self {
+    pub fn conditional(&mut self, condition: Expression, builder: BuilderCallbackFunction<IfElse>) -> &mut Self {
         let mut if_else = IfElse::new(condition);
 
         builder(&mut if_else);
