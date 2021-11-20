@@ -2,6 +2,7 @@ mod builder;
 mod var;
 mod expression;
 mod function;
+mod if_else;
 
 pub use var::Var;
 pub use expression::Expression;
