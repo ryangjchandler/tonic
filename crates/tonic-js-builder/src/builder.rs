@@ -1,4 +1,4 @@
-use crate::{Var, Expression, Function};
+use crate::{Var, Expression, Function, IfElse};
 use std::fmt::{Result, Formatter, Display};
 
 pub type BuilderCallbackFunction<T> = fn (&mut T);
@@ -30,6 +30,14 @@ impl Builder {
         builder(&mut function);
         
         self.source.push_str(&function.to_string());
+        self
+    }
+
+    pub fn if_else(&mut self, condition: Expression, builder: BuilderCallbackFunction<IfElse>) -> &mut Self {
+        let mut if_else = IfElse::new(condition);
+
+        builder(&mut if_else);
+
         self
     }
 
