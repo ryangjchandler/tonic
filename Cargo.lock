@@ -3,11 +3,14 @@
 version = 3
 
 [[package]]
-name = "js-builder"
+name = "tonic"
 version = "0.1.0"
+dependencies = [
+ "tonic-js-builder",
+]
 
 [[package]]
-name = "tonic"
+name = "tonic-js-builder"
 version = "0.1.0"
 
 [[package]]

@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "crates/tonic",
     "crates/tonic-parser",
-    "crates/js-builder"
+    "crates/tonic-js-builder",
+    "crates/tonic"
 ]

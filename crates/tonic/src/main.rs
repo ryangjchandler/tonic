@@ -1,3 +1,5 @@
+use tonic_js_builder::Builder;
+
 fn main() {
-    println!("Hello, world!");
+    dbg!(Builder::new());
 }
