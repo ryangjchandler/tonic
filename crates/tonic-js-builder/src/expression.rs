@@ -8,6 +8,7 @@ pub enum Expression {
     Null,
     Array(Vec<Self>),
     Infix(Box<Self>, String, Box<Self>),
+    Call(Box<Self>, Vec<Self>),
     Identifier(String),
 }
 
@@ -16,8 +17,8 @@ impl Expression {
         Self::Number(n)
     }
 
-    pub fn string(s: String) -> Self {
-        Self::String(s)
+    pub fn string(s: impl Into<String>) -> Self {
+        Self::String(s.into())
     }
 
     pub fn bool(b: bool) -> Self {
@@ -28,12 +29,12 @@ impl Expression {
         Self::Null
     }
 
-    pub fn identifier(id: String) -> Self {
-        Self::Identifier(id)
+    pub fn identifier(id: impl Into<String>) -> Self {
+        Self::Identifier(id.into())
     }
 
-    pub fn infix(left: Expression, op: String, right: Expression) -> Self {
-        Self::Infix(Box::new(left), op, Box::new(right))
+    pub fn infix(left: Expression, op: impl Into<String>, right: Expression) -> Self {
+        Self::Infix(Box::new(left), op.into(), Box::new(right))
     }
 }
 
@@ -91,6 +92,18 @@ impl From<(Box<Expression>, String, Box<Expression>)> for Expression {
     }
 }
 
+impl From<(Expression, Vec<Expression>)> for Expression {
+    fn from((callable, parameters): (Expression, Vec<Expression>)) -> Self {
+        Self::Call(Box::new(callable), parameters)
+    }
+}
+
+impl From<(Box<Expression>, Vec<Expression>)> for Expression {
+    fn from((callable, parameters): (Box<Expression>, Vec<Expression>)) -> Self {
+        Self::Call(callable, parameters)
+    }
+}
+
 impl Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", match self {
@@ -101,6 +114,7 @@ impl Display for Expression {
             Expression::Array(items) => format!("[{}]", items.into_iter().map(|i| i.to_string()).collect::<Vec<String>>().join(", ")),
             Expression::Identifier(i) => i.to_string(),
             Expression::Infix(left, op, right) => format!("{} {} {}", *left, op, *right),
+            Expression::Call(callable, parameters) => format!("{}({})", *callable, parameters.into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", ")),
             _ => unimplemented!()
         })
     }
@@ -140,5 +154,18 @@ mod tests {
     #[test]
     fn infix() {
         assert_eq!("1 + 2", Expression::from((Expression::from(1), "+".to_string(), Expression::from(2))).to_string().as_str());
+    }
+
+    #[test]
+    fn calls() {
+        assert_eq!("foo()", Expression::from(
+            (Expression::identifier("foo"), vec![])
+        ).to_string().as_str());
+
+        assert_eq!("foo(bar)", Expression::from(
+            (Expression::identifier("foo"), vec![
+                Expression::identifier("bar")
+            ])
+        ).to_string().as_str());
     }
 }
