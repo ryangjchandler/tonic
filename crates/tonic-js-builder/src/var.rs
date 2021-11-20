@@ -53,7 +53,7 @@ impl Var {
 
 impl Display for Var {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{} {}{}", self.keyword(), self.id, if let Some(expression) = &self.value {
+        write!(f, "{} {}{};", self.keyword(), self.id, if let Some(expression) = &self.value {
             format!(" = {}", expression)
         } else {
             String::from("")
@@ -64,7 +64,6 @@ impl Display for Var {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Expression;
 
     #[test]
     fn new() {
@@ -77,7 +76,7 @@ mod tests {
         
         var.id("foo".to_owned());
 
-        assert_eq!(var.to_string(), String::from("var foo"));
+        assert_eq!(var.to_string(), String::from("var foo;"));
     }
 
     #[test]
@@ -88,7 +87,7 @@ mod tests {
             .id("foo".to_owned())
             .as_const();
 
-        assert_eq!(var.to_string(), String::from("const foo"));
+        assert_eq!(var.to_string(), String::from("const foo;"));
     }
 
     #[test]
@@ -99,7 +98,7 @@ mod tests {
             .id("foo".to_owned())
             .as_let();
 
-        assert_eq!(var.to_string(), String::from("let foo"));
+        assert_eq!(var.to_string(), String::from("let foo;"));
     }
 
     #[test]
@@ -110,6 +109,6 @@ mod tests {
             .id("foo".into())
             .value("Hello!".into());
 
-        assert_eq!(var.to_string(), String::from(r##"var foo = "Hello!""##));
+        assert_eq!(var.to_string(), String::from(r##"var foo = "Hello!";"##));
     }
 }
