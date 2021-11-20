@@ -1,4 +1,4 @@
-use crate::{Var, Expression, Function, IfElse};
+use crate::{Var, Expression, Function, IfElse, While};
 use std::fmt::{Result, Formatter, Display};
 
 pub type BuilderCallbackFunction<T> = fn (&mut T);
@@ -37,7 +37,17 @@ impl Builder {
         let mut if_else = IfElse::new(condition);
 
         builder(&mut if_else);
+        self.source.push_str(&if_else.to_string());
 
+        self
+    }
+
+    pub fn while_loop(&mut self, condition: Expression, builder: BuilderCallbackFunction<While>) -> &mut Self {
+        let mut while_ = While::new(condition);
+        builder(&mut while_);
+
+        self.source.push_str(&while_.to_string());
+        
         self
     }
 
