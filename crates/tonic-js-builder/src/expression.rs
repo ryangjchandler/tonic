@@ -7,6 +7,7 @@ pub enum Expression {
     Bool(bool),
     Null,
     Array(Vec<Self>),
+    Index(Box<Self>, Box<Self>),
     Infix(Box<Self>, String, Box<Self>),
     Call(Box<Self>, Vec<Self>),
     Identifier(String),
@@ -35,6 +36,10 @@ impl Expression {
 
     pub fn infix(left: Expression, op: impl Into<String>, right: Expression) -> Self {
         Self::Infix(Box::new(left), op.into(), Box::new(right))
+    }
+
+    pub fn index(target: Expression, index: Expression) -> Self {
+        Self::Index(Box::new(target), Box::new(index))
     }
 }
 
@@ -112,6 +117,7 @@ impl Display for Expression {
             Expression::Bool(b) => b.to_string(),
             Expression::Null => "null".into(),
             Expression::Array(items) => format!("[{}]", items.into_iter().map(|i| i.to_string()).collect::<Vec<String>>().join(", ")),
+            Expression::Index(target, index) => format!("{}[{}]", *target, *index),
             Expression::Identifier(i) => i.to_string(),
             Expression::Infix(left, op, right) => format!("{} {} {}", *left, op, *right),
             Expression::Call(callable, parameters) => format!("{}({})", *callable, parameters.into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", ")),
@@ -149,6 +155,13 @@ mod tests {
     #[test]
     fn arrays() {
         assert_eq!("[1, 2, 3]", Expression::from(vec![1.into(), 2.into(), 3.into()]).to_string().as_str());
+    }
+
+    #[test]
+    fn indexes() {
+        assert_eq!("[1][0]", Expression::index(
+            Expression::Array(vec![Expression::Number(1.0)]), Expression::Number(0.0)
+        ).to_string().as_str());
     }
 
     #[test]
