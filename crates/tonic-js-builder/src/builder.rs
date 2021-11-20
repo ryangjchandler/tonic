@@ -1,4 +1,4 @@
-use crate::Var;
+use crate::{Var, Expression};
 use std::fmt::{Result, Formatter, Display};
 
 type BuilderCallbackFunction<T> = fn (&mut T);
@@ -21,6 +21,12 @@ impl Builder {
         builder(&mut var);
 
         self.source.push_str(&var.to_string());
+        self
+    }
+
+    pub fn expression(&mut self, expression: Expression) -> &mut Self {
+        self.source.push_str(&expression.to_string());
+        self.source.push(';');
 
         self
     }
@@ -48,5 +54,15 @@ mod tests {
             });
 
         assert_eq!(builder.to_string(), String::from("var foo = 123;"))
+    }
+
+    #[test]
+    fn expression_() {
+        let mut builder = Builder::new();
+
+        builder
+            .expression(().into());
+
+        assert_eq!(builder.to_string(), String::from("null;"));
     }
 }
