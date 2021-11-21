@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/tonic-parser",
+    "crates/tonic-compiler",
     "crates/tonic-js-builder",
     "crates/tonic"
 ]

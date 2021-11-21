@@ -1,0 +1,8 @@
+[package]
+name = "tonic-compiler"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tonic-parser = { path = "../tonic-parser" }
+tonic-js-builder = { path = "../tonic-js-builder" }

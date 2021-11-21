@@ -6,7 +6,15 @@ version = 3
 name = "tonic"
 version = "0.1.0"
 dependencies = [
+ "tonic-compiler",
+]
+
+[[package]]
+name = "tonic-compiler"
+version = "0.1.0"
+dependencies = [
  "tonic-js-builder",
+ "tonic-parser",
 ]
 
 [[package]]

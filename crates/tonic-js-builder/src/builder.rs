@@ -15,37 +15,23 @@ impl Builder {
         }
     }
 
-    pub fn var(&mut self, builder: BuilderCallbackFunction<Var>) -> &mut Self {
-        let mut var = Var::new();
-
-        builder(&mut var);
-
+    pub fn var(&mut self, var: Var) -> &mut Self {
         self.source.push_str(&var.to_string());
         self
     }
 
-    pub fn function(&mut self, builder: BuilderCallbackFunction<Function>) -> &mut Self {
-        let mut function = Function::new();
-
-        builder(&mut function);
-        
+    pub fn function(&mut self, function: Function) -> &mut Self {        
         self.source.push_str(&function.to_string());
         self
     }
 
-    pub fn conditional(&mut self, condition: Expression, builder: BuilderCallbackFunction<IfElse>) -> &mut Self {
-        let mut if_else = IfElse::new(condition);
-
-        builder(&mut if_else);
+    pub fn conditional(&mut self, if_else: IfElse) -> &mut Self {
         self.source.push_str(&if_else.to_string());
 
         self
     }
 
-    pub fn while_loop(&mut self, condition: Expression, builder: BuilderCallbackFunction<While>) -> &mut Self {
-        let mut while_ = While::new(condition);
-        builder(&mut while_);
-
+    pub fn while_loop(&mut self, while_: While) -> &mut Self {
         self.source.push_str(&while_.to_string());
         
         self
@@ -57,39 +43,14 @@ impl Builder {
 
         self
     }
+
+    pub fn source(&self) -> String {
+        self.source.clone()
+    }
 }
 
 impl Display for Builder {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.source)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn var_() {
-        let mut builder = Builder::new();
-
-        builder
-            .var(|var| {
-                var
-                    .id("foo".into())
-                    .value(123.into());
-            });
-
-        assert_eq!(builder.to_string(), String::from("var foo = 123;"))
-    }
-
-    #[test]
-    fn expression_() {
-        let mut builder = Builder::new();
-
-        builder
-            .expression(().into());
-
-        assert_eq!(builder.to_string(), String::from("null;"));
     }
 }
