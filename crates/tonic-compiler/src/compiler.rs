@@ -42,6 +42,10 @@ impl Compiler {
 
                 self.builder.function(function);
             },
+            Statement::Return { expression } => {
+                let expression = self.compile_expression(expression);
+                self.builder.return_(Some(expression));
+            },
             Statement::While { condition, then } => {
                 let condition = self.compile_expression(condition);
                 let mut then = Compiler::new(then.into_iter());

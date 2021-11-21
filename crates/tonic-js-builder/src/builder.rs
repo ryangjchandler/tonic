@@ -35,6 +35,19 @@ impl Builder {
         self
     }
 
+    pub fn return_(&mut self, expression: Option<Expression>) -> &mut Self {
+        self.source.push_str("return");
+
+        if let Some(expression) = expression {
+            self.source.push_str(" ");
+            self.source.push_str(&expression.to_string());
+        }
+
+        self.source.push_str(";");
+
+        self
+    }
+
     pub fn expression(&mut self, expression: Expression) -> &mut Self {
         self.source.push_str(&expression.to_string());
         self.source.push(';');
