@@ -12,8 +12,7 @@ pub enum Expression {
     Infix(Box<Expression>, Op, Box<Expression>),
     Call(Box<Expression>, Vec<Expression>),
     Assign(Box<Expression>, Box<Expression>),
-    SetProperty(Box<Expression>, Box<Expression>),
-    GetProperty(Box<Expression>, Option<Box<Expression>>),
+    Index(Box<Expression>, Option<Box<Expression>>),
     Closure(Vec<Parameter>, Vec<Statement>),
 }
 

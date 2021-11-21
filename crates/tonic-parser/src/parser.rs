@@ -465,14 +465,14 @@ fn postfix(parser: &mut Parser, lhs: Expression, kind: &TokenKind) -> ParserResu
             if parser.current.kind == TokenKind::RightBracket {
                 parser.expect(TokenKind::RightBracket)?;
 
-                return Ok(Expression::GetProperty(lhs.boxed(), None))
+                return Ok(Expression::Index(lhs.boxed(), None))
             }
 
             let property = parser.expression(0)?;
 
             parser.expect(TokenKind::RightBracket)?;
 
-            Ok(Expression::GetProperty(lhs.boxed(), Some(property.boxed())))
+            Ok(Expression::Index(lhs.boxed(), Some(property.boxed())))
         },
         _ => todo!()
     }
@@ -497,7 +497,7 @@ mod tests {
 
         assert_eq!(parse("[1][0]"), vec![
             Statement::Expression {
-                expression: Expression::GetProperty(
+                expression: Expression::Index(
                     Expression::Array(vec![
                         Expression::Number(1.0),
                     ]).boxed(),
