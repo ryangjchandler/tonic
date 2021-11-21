@@ -48,6 +48,16 @@ impl Builder {
         self
     }
 
+    pub fn break_(&mut self) -> &mut Self {
+        self.source.push_str("break;");
+        self
+    }
+
+    pub fn continue_(&mut self) -> &mut Self {
+        self.source.push_str("continue;");
+        self
+    }
+
     pub fn expression(&mut self, expression: Expression) -> &mut Self {
         self.source.push_str(&expression.to_string());
         self.source.push(';');
