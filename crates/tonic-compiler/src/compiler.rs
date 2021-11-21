@@ -1,5 +1,5 @@
-use tonic_parser::{Statement, Expression};
-use tonic_js_builder::{Builder, Var, Function, Expression as JsExpression};
+use tonic_parser::{Statement, Expression, Op};
+use tonic_js_builder::{Builder, Var, While, Function, Expression as JsExpression};
 use std::vec::IntoIter;
 
 #[derive(Debug)]
@@ -42,6 +42,16 @@ impl Compiler {
 
                 self.builder.function(function);
             },
+            Statement::While { condition, then } => {
+                let condition = self.compile_expression(condition);
+                let mut then = Compiler::new(then.into_iter());
+                then.compile();
+
+                let mut while_ = While::new(condition);
+                while_.then(then.builder());
+
+                self.builder.while_loop(while_);
+            },
             Statement::Expression { expression } => {
                 let expression = self.compile_expression(expression);
 
@@ -54,7 +64,18 @@ impl Compiler {
     fn compile_expression(&mut self, expression: Expression) -> JsExpression {
         match expression {
             Expression::String(s) => s.into(),
+            Expression::Number(n) => n.into(),
             Expression::Identifier(i) => JsExpression::identifier(i),
+            Expression::Infix(left, op, right) => {
+                JsExpression::from((
+                    self.compile_expression(*left),
+                    match op {
+                        Op::GreaterThan => ">".to_string(),
+                        _ => unimplemented!(),
+                    },
+                    self.compile_expression(*right),
+                ))
+            },
             Expression::Call(callable, args) => {
                 JsExpression::Call(
                     Box::new(self.compile_expression(*callable)),

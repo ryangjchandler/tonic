@@ -15,8 +15,8 @@ impl While {
         }
     }
 
-    pub fn then(&mut self, callback: BuilderCallbackFunction<Builder>) -> &mut Self {
-        callback(&mut self.then);
+    pub fn then(&mut self, then: Builder) -> &mut Self {
+        self.then = then;
         self
     }
 }
