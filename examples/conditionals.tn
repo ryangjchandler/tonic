@@ -1,5 +1,7 @@
 if 1 > 2 {
     println("Testing!")
-} else {
+} else if 3 < 5 {
     println("Still testing!")
+} else {
+    println("Finally!")
 }
