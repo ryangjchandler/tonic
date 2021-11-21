@@ -85,6 +85,8 @@ impl Compiler {
         match expression {
             Expression::String(s) => s.into(),
             Expression::Number(n) => n.into(),
+            Expression::Bool(b) => b.into(),
+            Expression::Array(items) => items.into_iter().map(|i| self.compile_expression(i)).collect::<Vec<JsExpression>>().into(),
             Expression::Identifier(i) => JsExpression::identifier(i),
             Expression::Infix(left, op, right) => {
                 JsExpression::from((
@@ -110,6 +112,15 @@ impl Compiler {
                     Box::new(self.compile_expression(*callable)),
                     args.into_iter().map(|a| self.compile_expression(a)).collect::<Vec<JsExpression>>()
                 )
+            },
+            Expression::Assign(target, value) => {
+                // TODO: Add support for more convenient assignment operators - `+=`, `-=`, `*=`, etc.
+                JsExpression::infix(self.compile_expression(*target), "=", self.compile_expression(*value))
+            },
+            Expression::Index(array, index) => {
+                // TODO: Assumes that an index is always present. Not really true since appending to an array
+                // can be done using the `items[]` syntax.
+                JsExpression::index(self.compile_expression(*array), self.compile_expression(*index.unwrap()))
             },
             _ => unimplemented!("compile expression {:?}", expression),
         }
