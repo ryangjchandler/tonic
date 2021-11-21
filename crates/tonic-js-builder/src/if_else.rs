@@ -22,17 +22,13 @@ impl IfElse {
         self
     }
 
-    pub fn then(&mut self, callback: BuilderCallbackFunction<Builder>) -> &mut Self {
-        callback(&mut self.then);
-
+    pub fn then(&mut self, then: Builder) -> &mut Self {
+        self.then = then;
         self
     }
 
-    pub fn otherwise(&mut self, callback: BuilderCallbackFunction<Builder>) -> &mut Self {
-        self.otherwise = Some(Builder::new());
-
-        callback(&mut self.otherwise.as_mut().unwrap());
-        
+    pub fn otherwise(&mut self, otherwise: Builder) -> &mut Self {
+        self.otherwise = Some(otherwise);
         self
     }
 }

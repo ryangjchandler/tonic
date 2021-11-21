@@ -27,13 +27,11 @@ impl Builder {
 
     pub fn conditional(&mut self, if_else: IfElse) -> &mut Self {
         self.source.push_str(&if_else.to_string());
-
         self
     }
 
     pub fn while_loop(&mut self, while_: While) -> &mut Self {
         self.source.push_str(&while_.to_string());
-        
         self
     }
 

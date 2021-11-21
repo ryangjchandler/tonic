@@ -1,5 +1,5 @@
 use tonic_parser::{Statement, Expression, Op};
-use tonic_js_builder::{Builder, Var, While, Function, Expression as JsExpression};
+use tonic_js_builder::{Builder, Var, While, IfElse, Function, Expression as JsExpression};
 use std::vec::IntoIter;
 
 #[derive(Debug)]
@@ -51,6 +51,22 @@ impl Compiler {
                 while_.then(then.builder());
 
                 self.builder.while_loop(while_);
+            },
+            Statement::If { condition, then, otherwise } => {
+                let condition = self.compile_expression(condition);
+
+                let mut then = Compiler::new(then.into_iter());
+                then.compile();
+
+                let mut otherwise = Compiler::new(otherwise.into_iter());
+                otherwise.compile();
+
+                let mut if_ = IfElse::new(condition);
+                if_
+                    .then(then.builder())
+                    .otherwise(otherwise.builder());
+
+                self.builder.conditional(if_);
             },
             Statement::Expression { expression } => {
                 let expression = self.compile_expression(expression);
