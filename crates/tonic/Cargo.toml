@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 tonic-compiler = { path = "../tonic-compiler" }
-rquickjs = { git = "https://github.com/DelSkayn/rquickjs" }
+rquickjs = { git = "https://github.com/DelSkayn/rquickjs", features = ["macro"] }
