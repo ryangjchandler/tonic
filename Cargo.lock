@@ -3,9 +3,40 @@
 version = 3
 
 [[package]]
+name = "cc"
+version = "1.0.72"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22a9137b95ea06864e018375b72adfb7db6e6f68cfc8df5a04d00288050485ee"
+
+[[package]]
+name = "rquickjs"
+version = "0.1.2"
+source = "git+https://github.com/DelSkayn/rquickjs#6e112ce1ebf2f8cec53225d2ea5b9c6b6f340046"
+dependencies = [
+ "rquickjs-core",
+]
+
+[[package]]
+name = "rquickjs-core"
+version = "0.1.2"
+source = "git+https://github.com/DelSkayn/rquickjs#6e112ce1ebf2f8cec53225d2ea5b9c6b6f340046"
+dependencies = [
+ "rquickjs-sys",
+]
+
+[[package]]
+name = "rquickjs-sys"
+version = "0.1.2"
+source = "git+https://github.com/DelSkayn/rquickjs#6e112ce1ebf2f8cec53225d2ea5b9c6b6f340046"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "tonic"
 version = "0.1.0"
 dependencies = [
+ "rquickjs",
  "tonic-compiler",
 ]
 

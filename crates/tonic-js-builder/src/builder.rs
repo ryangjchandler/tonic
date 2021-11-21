@@ -1,8 +1,6 @@
 use crate::{Var, Expression, Function, IfElse, While};
 use std::fmt::{Result, Formatter, Display};
 
-pub type BuilderCallbackFunction<T> = fn (&mut T);
-
 #[derive(Debug, Clone)]
 pub struct Builder {
     source: String,

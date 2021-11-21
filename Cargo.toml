@@ -5,3 +5,6 @@ members = [
     "crates/tonic-js-builder",
     "crates/tonic"
 ]
+
+[profile.release]
+debug = true

@@ -1,4 +1,4 @@
-use crate::{Expression, Builder, builder::BuilderCallbackFunction};
+use crate::{Expression, Builder};
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug)]

@@ -7,7 +7,6 @@ mod statement;
 mod expression;
 mod r#type;
 mod passes;
-mod js;
 
 pub use token::{TokenKind, Token, Span};
 pub use lexer::Lexer;
