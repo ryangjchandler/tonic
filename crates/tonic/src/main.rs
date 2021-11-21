@@ -5,8 +5,11 @@ fn main() {
     let contents = read(file);
     let compiled = compile(&contents[..]);
 
-    println!("=== JS OUTPUT ===");
-    println!("{}", compiled);
+    #[cfg(debug_assertions)]
+    {
+        println!("=== JS OUTPUT ===");
+        println!("{}", compiled);
+    }
 }
 
 fn file() -> String {
