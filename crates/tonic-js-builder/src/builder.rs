@@ -3,7 +3,7 @@ use std::fmt::{Result, Formatter, Display};
 
 pub type BuilderCallbackFunction<T> = fn (&mut T);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Builder {
     source: String,
 }

@@ -27,15 +27,15 @@ impl Function {
         self
     }
 
-    pub fn body(&mut self, callback: BuilderCallbackFunction<Builder>) -> &mut Self {
-        callback(&mut self.body);
+    pub fn body(&mut self, body: Builder) -> &mut Self {
+        self.body = body;
         self
     }
 }
 
 impl Display for Function {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "function {}({}) {{\n{}\n}}",
+        write!(f, "function {}({}) {{\n{}\n}}\n\n",
             self.id,
             self.parameters.clone().into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", "),
             self.body.to_string(),

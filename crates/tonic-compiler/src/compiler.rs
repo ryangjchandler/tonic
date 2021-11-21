@@ -1,5 +1,5 @@
 use tonic_parser::{Statement, Expression};
-use tonic_js_builder::{Builder, Var, Expression as JsExpression};
+use tonic_js_builder::{Builder, Var, Function, Expression as JsExpression};
 use std::vec::IntoIter;
 
 #[derive(Debug)]
@@ -27,6 +27,26 @@ impl Compiler {
 
                 self.builder.var(var);
             },
+            Statement::Function { identifier, parameters, body, .. } => {
+                let mut function = Function::new();
+                
+                let mut body = Compiler::new(body.into_iter());
+                body.compile();
+
+                function
+                    .id(identifier)
+                    .parameters(
+                        parameters.into_iter().map(|p| JsExpression::identifier(p.name)).collect::<Vec<JsExpression>>()
+                    )
+                    .body(body.builder());
+
+                self.builder.function(function);
+            },
+            Statement::Expression { expression } => {
+                let expression = self.compile_expression(expression);
+
+                self.builder.expression(expression);
+            },
             _ => unimplemented!("compile statement {:?}", statement),
         }
     }
@@ -34,6 +54,13 @@ impl Compiler {
     fn compile_expression(&mut self, expression: Expression) -> JsExpression {
         match expression {
             Expression::String(s) => s.into(),
+            Expression::Identifier(i) => JsExpression::identifier(i),
+            Expression::Call(callable, args) => {
+                JsExpression::Call(
+                    Box::new(self.compile_expression(*callable)),
+                    args.into_iter().map(|a| self.compile_expression(a)).collect::<Vec<JsExpression>>()
+                )
+            },
             _ => unimplemented!("compile expression {:?}", expression),
         }
     }
@@ -44,5 +71,9 @@ impl Compiler {
         }
 
         self.builder.source()
+    }
+
+    pub fn builder(&self) -> Builder {
+        self.builder.clone()
     }
 }

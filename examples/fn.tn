@@ -1,0 +1,5 @@
+fn name(person) {
+    let name = "Ryan"
+}
+
+name("John")
