@@ -69,10 +69,19 @@ impl Compiler {
             Expression::Infix(left, op, right) => {
                 JsExpression::from((
                     self.compile_expression(*left),
-                    match op {
-                        Op::GreaterThan => ">".to_string(),
+                    (match op {
+                        Op::GreaterThan => ">",
+                        Op::LessThan => "<",
+                        Op::GreaterThanEquals => ">=",
+                        Op::LessThanEquals => "<=",
+                        Op::Add => "+",
+                        Op::Subtract => "-",
+                        Op::Multiply => "*",
+                        Op::Divide => "/",
+                        Op::Equals => "===",
+                        Op::NotEquals => "!==",
                         _ => unimplemented!(),
-                    },
+                    }).to_string(),
                     self.compile_expression(*right),
                 ))
             },
