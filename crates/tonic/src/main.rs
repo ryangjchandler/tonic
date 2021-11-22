@@ -32,11 +32,7 @@ fn main() {
 
         glob.set("println", Func::from(println)).unwrap();
 
-        ctx.eval::<(), _>(r#"
-            println("Printing!", "testing!")
-        "#).unwrap();
-
-        // let res: () = ctx.eval(compiled).unwrap();
+        ctx.eval::<(), _>(compiled).unwrap();
     })
 }
 
