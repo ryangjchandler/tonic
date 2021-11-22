@@ -9,6 +9,7 @@ pub enum Expression {
     Null,
     Array(Vec<Self>),
     Index(Box<Self>, Box<Self>),
+    Dot(Box<Self>, Box<Self>),
     Infix(Box<Self>, String, Box<Self>),
     Call(Box<Self>, Vec<Self>),
     Identifier(String),
@@ -42,6 +43,10 @@ impl Expression {
 
     pub fn index(target: Expression, index: Expression) -> Self {
         Self::Index(Box::new(target), Box::new(index))
+    }
+
+    pub fn dot(target: Expression, property: Expression) -> Self {
+        Self::Dot(Box::new(target), Box::new(property))
     }
 
     pub fn closure(parameters: Vec<Self>, body: Builder) -> Self {
@@ -124,6 +129,7 @@ impl Display for Expression {
             Expression::Null => "null".into(),
             Expression::Array(items) => format!("[{}]", items.iter().map(|i| i.to_string()).collect::<Vec<String>>().join(", ")),
             Expression::Index(target, index) => format!("{}[{}]", *target, *index),
+            Expression::Dot(target, index) => format!("{}.{}", *target, *index),
             Expression::Identifier(i) => i.to_string(),
             Expression::Infix(left, op, right) => format!("{} {} {}", *left, op, *right),
             Expression::Call(callable, parameters) => format!("{}({})", *callable, parameters.iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", ")),
@@ -172,6 +178,11 @@ mod tests {
         assert_eq!("[1][0]", Expression::index(
             Expression::Array(vec![Expression::Number(1.0)]), Expression::Number(0.0)
         ).to_string().as_str());
+    }
+
+    #[test]
+    fn dots() {
+        assert_eq!("foo.length", Expression::dot(Expression::identifier("foo"), Expression::identifier("length")).to_string().as_str());
     }
 
     #[test]
