@@ -122,14 +122,14 @@ impl Display for Expression {
             Expression::Number(n) => n.to_string(),
             Expression::Bool(b) => b.to_string(),
             Expression::Null => "null".into(),
-            Expression::Array(items) => format!("[{}]", items.into_iter().map(|i| i.to_string()).collect::<Vec<String>>().join(", ")),
+            Expression::Array(items) => format!("[{}]", items.iter().map(|i| i.to_string()).collect::<Vec<String>>().join(", ")),
             Expression::Index(target, index) => format!("{}[{}]", *target, *index),
             Expression::Identifier(i) => i.to_string(),
             Expression::Infix(left, op, right) => format!("{} {} {}", *left, op, *right),
-            Expression::Call(callable, parameters) => format!("{}({})", *callable, parameters.into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", ")),
+            Expression::Call(callable, parameters) => format!("{}({})", *callable, parameters.iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", ")),
             Expression::Closure(parameters, body) => format!("({}) => {{\n{}\n}}",
-                parameters.into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", "),
-                body.to_string(),
+                parameters.iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", "),
+                body
             ),
             _ => unimplemented!()
         })

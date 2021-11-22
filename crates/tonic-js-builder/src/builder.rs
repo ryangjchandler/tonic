@@ -37,11 +37,11 @@ impl Builder {
         self.source.push_str("return");
 
         if let Some(expression) = expression {
-            self.source.push_str(" ");
+            self.source.push(' ');
             self.source.push_str(&expression.to_string());
         }
 
-        self.source.push_str(";");
+        self.source.push(';');
 
         self
     }

@@ -11,7 +11,7 @@ pub struct IfElse {
 impl IfElse {
     pub fn new(condition: Expression) -> Self {
         Self {
-            condition: condition,
+            condition,
             then: Builder::new(),
             otherwise: None,
         }

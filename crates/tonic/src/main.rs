@@ -1,6 +1,5 @@
 use tonic_compiler::compile;
-use rquickjs::{Runtime, Context, bind, Func, Value, Rest};
-use quicli::prelude::*;
+use rquickjs::{Runtime, Context, Func, Value, Rest};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -11,7 +10,7 @@ struct Cli {
     file: String,
 }
 
-pub fn println(vs: Rest<Value>) -> () {
+pub fn println(vs: Rest<Value>) {
     for v in vs.into_inner().into_iter() {
         println!("{}", match true {
             _ if v.is_string() => v.into_string().unwrap().to_string().unwrap(),

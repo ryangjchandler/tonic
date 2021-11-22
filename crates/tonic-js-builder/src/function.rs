@@ -38,7 +38,7 @@ impl Display for Function {
         write!(f, "function {}({}) {{\n{}\n}}\n\n",
             self.id,
             self.parameters.clone().into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", "),
-            self.body.to_string(),
+            self.body
         )
     }
 }
