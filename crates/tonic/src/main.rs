@@ -28,8 +28,18 @@ pub fn println(vs: Rest<Value>) {
 #[bind(module, public)]
 #[quickjs(bare)]
 mod testing {
-    pub fn example() -> String {
-        String::from("Example!")
+    pub struct Test {
+        n: String
+    }
+
+    impl Test {
+        pub fn new(n: String) -> Self {
+            Self { n }
+        }
+
+        pub fn get(&self) -> String {
+            self.n.clone()
+        }
     }
 }
 
