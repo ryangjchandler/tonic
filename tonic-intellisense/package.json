@@ -20,6 +20,12 @@
             "language": "tonic",
             "scopeName": "source.tonic",
             "path": "./syntaxes/tonic.tmLanguage.json"
-        }]
+        }],
+        "snippets": [
+            {
+                "language": "tonic",
+                "path": "./snippets.json"
+            }
+        ]
     }
 }

@@ -1,0 +1,18 @@
+{
+    "Tonic Function Definition": {
+		"prefix": "tfn",
+		"body": [
+			"fn $1($2) {",
+			"    $3",
+			"}"
+		],
+		"description": "Create a new function definition."
+	},
+	"Tonic Variable Declaration": {
+		"prefix": "tld",
+		"body": [
+			"let $1 = $2"
+		],
+		"description": "Create a new variable declaration."
+	}
+}

@@ -17,12 +17,16 @@
 					"match": "\\b(if|else|while|return|break|continue|fn|let)\\b"
 				},
 				{
-					"name": "constant.language",
+					"name": "constant.language.tonic",
 					"match": "\\b(true|false)\\b"
 				},
 				{
-					"name": "keyword.operator",
-					"match": "(=>)|(->)|[-:=*,!.+|%/&amp;~@<>;]"
+					"name": "keyword.operator.tonic",
+					"match": "(=>)|(->)|[-:=*!.+|%/<>;]"
+				},
+				{
+					"name": "entity.name",
+					"match": "[$a-zA-Z_]+"
 				}
 			]
 		},
