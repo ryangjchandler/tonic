@@ -56,6 +56,8 @@ fn main() {
             println!("Memory used (bytes): {}", runtime.memory_usage().memory_used_size);
         }
     } else {
+        println!("Tonic REPL v0.1.0");
+        
         let mut rl = Editor::<()>::new();
 
         loop {
