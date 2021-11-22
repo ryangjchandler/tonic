@@ -11,3 +11,4 @@ rquickjs = { git = "https://github.com/DelSkayn/rquickjs", features = ["macro", 
 quicli = "0.4"
 structopt = "0.2"
 rustyline = "9.0.0"
+ureq = "2"

@@ -27,18 +27,55 @@ pub fn println(vs: Rest<Value>) {
 
 #[bind(module, public)]
 #[quickjs(bare)]
-mod testing {
-    pub struct Test {
-        n: String
+mod http {
+    use std::collections::HashMap;
+    use ureq::{get, post, Request};
+
+    #[derive(Clone)]
+    pub enum ClientMethod {
+        Get,
+        Post,
     }
 
-    impl Test {
-        pub fn new(n: String) -> Self {
-            Self { n }
+    #[derive(Clone)]
+    #[quickjs(cloneable)]
+    pub struct Client {
+        method: ClientMethod,
+        path: String,
+        headers: HashMap<String, String>,
+    }
+
+    impl Client {
+        pub fn new() -> Self {
+            Self {
+                method: ClientMethod::Get,
+                path: String::default(),
+                headers: HashMap::default(),
+            }
         }
 
-        pub fn get(&self) -> String {
-            self.n.clone()
+        pub fn get(&mut self, path: String) -> &mut Self {
+            self.path = path;
+            self.method = ClientMethod::Get;
+            self
+        }
+
+        pub fn header(&mut self, name: String, value: String) -> &mut Self {
+            self.headers.insert(name, value);
+            self
+        }
+
+        pub fn send(&self) -> String {
+            let mut request: Request = match self.method {
+                ClientMethod::Get => get(&self.path),
+                ClientMethod::Post => post(&self.path),
+            };
+
+            for (header, value) in self.headers.clone() {
+                request = request.set(&header, &value);
+            }
+
+            request.call().unwrap().into_string().unwrap()
         }
     }
 }
@@ -51,7 +88,7 @@ fn main() {
 
     let resolver = (
         BuiltinResolver::default()
-            .with_module("@std/testing"),
+            .with_module("@std/http"),
         FileResolver::default()
             .with_path("./"),
     );
@@ -59,7 +96,7 @@ fn main() {
     let loader = (
         BuiltinLoader::default(),
         ModuleLoader::default()
-            .with_module("@std/testing", Testing),
+            .with_module("@std/http", Http),
         ScriptLoader::default(),
     );
 
