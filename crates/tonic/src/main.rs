@@ -1,5 +1,5 @@
 use tonic_compiler::compile;
-use rquickjs::{Runtime, Context, Func, Value, Rest};
+use rquickjs::{BuiltinLoader, BuiltinResolver, FileResolver, Runtime, ModuleLoader, ScriptLoader, Context, Func, Value, Rest, bind};
 use rustyline::{Editor, error::ReadlineError};
 use structopt::StructOpt;
 
@@ -7,6 +7,9 @@ use structopt::StructOpt;
 struct Cli {
     #[structopt(long = "debug", short = "d", help = "Output debug information (JS, memory usage, etc)")]
     debug: bool,
+
+    #[structopt(long = "raw", short = "r", help = "Execute the specified file as raw JavaScript")]
+    raw: bool,
 
     file: Option<String>,
 }
@@ -22,11 +25,35 @@ pub fn println(vs: Rest<Value>) {
     }
 }
 
+#[bind(module, public)]
+#[quickjs(bare)]
+mod testing {
+    pub fn example() -> String {
+        String::from("Example!")
+    }
+}
+
 fn main() {
     let args = Cli::from_args();
-
     let runtime: Runtime = Runtime::new().unwrap();
+
     runtime.set_max_stack_size(256 * 2048);
+
+    let resolver = (
+        BuiltinResolver::default()
+            .with_module("@std/testing"),
+        FileResolver::default()
+            .with_path("./"),
+    );
+
+    let loader = (
+        BuiltinLoader::default(),
+        ModuleLoader::default()
+            .with_module("@std/testing", Testing),
+        ScriptLoader::default(),
+    );
+
+    runtime.set_loader(resolver, loader);
 
     let context: rquickjs::Context = Context::full(&runtime).unwrap();
 
@@ -35,8 +62,8 @@ fn main() {
     }
     
     if let Some(file) = args.file {
-        let contents = read(file);
-        let compiled = compile(&contents[..]);
+        let contents = read(file.clone());
+        let compiled = if args.raw { contents } else { compile(&contents[..]) };
     
         if args.debug {
             println!("=== JS OUTPUT ===");
@@ -48,7 +75,7 @@ fn main() {
     
             glob.set("println", Func::from(println)).unwrap();
     
-            ctx.eval::<(), _>(compiled).unwrap();
+            ctx.compile(file, compiled).unwrap();
         });
     
         if args.debug {
