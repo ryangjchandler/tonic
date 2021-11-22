@@ -5,6 +5,7 @@ pub fn println(vs: Rest<Value>) -> () {
     for v in vs.into_inner().into_iter() {
         println!("{}", match true {
             _ if v.is_string() => v.into_string().unwrap().to_string().unwrap(),
+            _ if v.is_number() => v.as_number().unwrap().to_string(),
             _ => unimplemented!(),
         });
     } 
