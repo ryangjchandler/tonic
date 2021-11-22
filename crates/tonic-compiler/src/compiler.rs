@@ -121,9 +121,21 @@ impl Compiler {
                 JsExpression::infix(self.compile_expression(*target), "=", self.compile_expression(*value))
             },
             Expression::Index(array, index) => {
-                // TODO: Assumes that an index is always present. Not really true since appending to an array
-                // can be done using the `items[]` syntax.
-                JsExpression::index(self.compile_expression(*array), self.compile_expression(*index.unwrap()))
+                // If we're appending a value, i.e. `items[] = ...`, we don't want to use the normal syntax and instead
+                // want to meta-program a `.length` index so that the value is added to the end of the array.
+                if let Some(index) = index {
+                    JsExpression::index(self.compile_expression(*array), self.compile_expression(*index))
+                } else {
+                    let array = self.compile_expression(*array);
+
+                    JsExpression::index(
+                        array.clone(),
+                        JsExpression::dot(
+                            array,
+                            JsExpression::identifier("length")
+                        )
+                    )
+                }
             },
             Expression::Closure(parameters, body) => {
                 let mut body = Compiler::new(body.into_iter());
