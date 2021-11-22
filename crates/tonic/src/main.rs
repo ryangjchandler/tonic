@@ -22,7 +22,9 @@ fn main() {
         println!("{}", compiled);
     }
 
-    let runtime = Runtime::new().unwrap();
+    let runtime: Runtime = Runtime::new().unwrap();
+    runtime.set_max_stack_size(256 * 2048);
+
     let context: rquickjs::Context = Context::full(&runtime).unwrap();
 
     #[cfg(debug_assertions)]

@@ -6,4 +6,4 @@ fn fib(n) {
     return fib(n - 1) + fib(n - 2)
 }
 
-println(fib(27))
+println(fib(30))

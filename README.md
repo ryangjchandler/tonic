@@ -30,4 +30,6 @@ println(fib(27)) // -> 196418
 
 During testing and development, these are some of the limitations I have found so far:
 
-* A recursive `fib(n)` function that exceeds `fib(27)` causes a runtime stack-overflow. Realistically, nobody is going to be using this much recursion but it's normally a good benchmark for raw recursive performance.
+> A checked box marks the limitation as resolved or fixed.
+
+* [x] A recursive `fib(n)` function that exceeds `fib(27)` causes a runtime stack-overflow. Realistically, nobody is going to be using this much recursion but it's normally a good benchmark for raw recursive performance.
