@@ -1,7 +1,3 @@
-let i = 0
-
-while i < 100000 {
-    i = i + 1
-
-    dbg(i)
+while 1 > 2 {
+    println("Greater than 2!")
 }

@@ -1,7 +1,0 @@
-let name = "Ryan"
-
-let dbg_name = fn () {
-    dbg(name)
-}
-
-dbg_name()

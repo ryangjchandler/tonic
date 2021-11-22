@@ -1,13 +1,10 @@
-[package]
-edition = "2021"
-name = "tonic"
-version = "0.1.0"
-description = ""
-license = "MIT"
-
-[dependencies]
-ariadne = "0.1.3"
-rand = "0.7.3"
+[workspace]
+members = [
+    "crates/tonic-parser",
+    "crates/tonic-compiler",
+    "crates/tonic-js-builder",
+    "crates/tonic"
+]
 
 [profile.release]
 debug = true

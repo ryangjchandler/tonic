@@ -1,15 +1,5 @@
-let array = [1, 2, 3]
+let nums = [1, 2, 3]
 
-dbg(array)
+println(nums[0])
 
-let b = [array, 4, 5]
-
-dbg(b)
-
-array[] = 6
-
-dbg(b)
-
-array[3] = "testing"
-
-dbg(array[3])
+nums[1] = 5

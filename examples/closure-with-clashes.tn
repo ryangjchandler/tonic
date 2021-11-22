@@ -1,8 +1,0 @@
-let name = "Ryan"
-
-let dbg_name = fn (name) {
-    dbg("Shouldn't output Ryan")
-    dbg(name)
-}
-
-dbg_name("Peter")

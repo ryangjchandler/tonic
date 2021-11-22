@@ -1,0 +1,10 @@
+[package]
+name = "tonic"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tonic-compiler = { path = "../tonic-compiler" }
+rquickjs = { git = "https://github.com/DelSkayn/rquickjs", features = ["macro", "classes"] }

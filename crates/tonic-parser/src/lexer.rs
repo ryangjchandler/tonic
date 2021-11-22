@@ -205,7 +205,7 @@ fn is_valid_symbol_char(c: char) -> bool {
 }
 
 fn is_valid_identifier_char(c: char) -> bool {
-    c.is_alphabetic() || c == '_'
+    c.is_alphabetic() || c == '_' || c == '$'
 }
 
 fn symbol(s: &str) -> Option<TokenKind> {
