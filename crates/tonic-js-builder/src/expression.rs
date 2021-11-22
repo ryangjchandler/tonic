@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter, Result};
+use crate::Builder;
 
 #[derive(Debug, Clone)]
 pub enum Expression {
@@ -11,6 +12,7 @@ pub enum Expression {
     Infix(Box<Self>, String, Box<Self>),
     Call(Box<Self>, Vec<Self>),
     Identifier(String),
+    Closure(Vec<Self>, Builder),
 }
 
 impl Expression {
@@ -40,6 +42,10 @@ impl Expression {
 
     pub fn index(target: Expression, index: Expression) -> Self {
         Self::Index(Box::new(target), Box::new(index))
+    }
+
+    pub fn closure(parameters: Vec<Self>, body: Builder) -> Self {
+        Self::Closure(parameters, body)
     }
 }
 
@@ -121,6 +127,10 @@ impl Display for Expression {
             Expression::Identifier(i) => i.to_string(),
             Expression::Infix(left, op, right) => format!("{} {} {}", *left, op, *right),
             Expression::Call(callable, parameters) => format!("{}({})", *callable, parameters.into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", ")),
+            Expression::Closure(parameters, body) => format!("({}) => {{\n{}\n}}",
+                parameters.into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(", "),
+                body.to_string(),
+            ),
             _ => unimplemented!()
         })
     }

@@ -122,6 +122,15 @@ impl Compiler {
                 // can be done using the `items[]` syntax.
                 JsExpression::index(self.compile_expression(*array), self.compile_expression(*index.unwrap()))
             },
+            Expression::Closure(parameters, body) => {
+                let mut body = Compiler::new(body.into_iter());
+                body.compile();
+
+                JsExpression::closure(
+                    parameters.into_iter().map(|p| JsExpression::identifier(p.name)).collect::<Vec<JsExpression>>(),
+                    body.builder()
+                )
+            },
             _ => unimplemented!("compile expression {:?}", expression),
         }
     }
