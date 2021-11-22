@@ -19,6 +19,10 @@
 				{
 					"name": "constant.language",
 					"match": "\\b(true|false)\\b"
+				},
+				{
+					"name": "keyword.operator",
+					"match": "(=>)|(->)|[-:=*,!.+|%/&amp;~@<>;]"
 				}
 			]
 		},
