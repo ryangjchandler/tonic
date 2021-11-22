@@ -1,0 +1,25 @@
+{
+    "name": "tonic-intellisense",
+    "displayName": "Tonic Intellisense",
+    "description": "Add support for the Tonic programming language.",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.62.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "tonic",
+            "aliases": ["Tonic", "tonic"],
+            "extensions": [".tn"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "tonic",
+            "scopeName": "source.tonic",
+            "path": "./syntaxes/tonic.tmLanguage.json"
+        }]
+    }
+}
