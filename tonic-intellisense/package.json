@@ -3,6 +3,7 @@
     "displayName": "Tonic Intellisense",
     "description": "Add support for the Tonic programming language.",
     "version": "0.0.1",
+    "publisher": "TonicLanguage",
     "engines": {
         "vscode": "^1.62.0"
     },
