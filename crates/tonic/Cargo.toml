@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 tonic-compiler = { path = "../tonic-compiler" }
 rquickjs = { git = "https://github.com/DelSkayn/rquickjs", features = ["macro", "classes"] }
+quicli = "0.4"
+structopt = "0.2"

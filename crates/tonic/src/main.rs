@@ -1,5 +1,15 @@
 use tonic_compiler::compile;
 use rquickjs::{Runtime, Context, bind, Func, Value, Rest};
+use quicli::prelude::*;
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+struct Cli {
+    #[structopt(long = "debug", short = "d", help = "Output debug information (JS, memory usage, etc)")]
+    debug: bool,
+
+    file: String,
+}
 
 pub fn println(vs: Rest<Value>) -> () {
     for v in vs.into_inner().into_iter() {
@@ -12,12 +22,12 @@ pub fn println(vs: Rest<Value>) -> () {
 }
 
 fn main() {
-    let file = file();
-    let contents = read(file);
+    let args = Cli::from_args();
+
+    let contents = read(args.file);
     let compiled = compile(&contents[..]);
 
-    #[cfg(debug_assertions)]
-    {
+    if args.debug {
         println!("=== JS OUTPUT ===");
         println!("{}", compiled);
     }
@@ -27,8 +37,9 @@ fn main() {
 
     let context: rquickjs::Context = Context::full(&runtime).unwrap();
 
-    #[cfg(debug_assertions)]
-    println!("=== EVAL ===");
+    if args.debug {
+        println!("=== EVAL ===");
+    }
     
     context.with(|ctx: rquickjs::Ctx| {
         let glob = ctx.globals();
@@ -36,11 +47,12 @@ fn main() {
         glob.set("println", Func::from(println)).unwrap();
 
         ctx.eval::<(), _>(compiled).unwrap();
-    })
-}
+    });
 
-fn file() -> String {
-    std::env::args().nth(1).unwrap()
+    if args.debug {
+        println!("=== DEBUG ===");
+        println!("Memory used (bytes): {}", runtime.memory_usage().memory_used_size);
+    }
 }
 
 fn read(path: String) -> String {
