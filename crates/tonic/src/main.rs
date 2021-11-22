@@ -103,10 +103,6 @@ fn main() {
     runtime.set_loader(resolver, loader);
 
     let context: rquickjs::Context = Context::full(&runtime).unwrap();
-
-    if args.debug {
-        println!("=== EVAL ===");
-    }
     
     if let Some(file) = args.file {
         let contents = read(file.clone());
@@ -122,6 +118,10 @@ fn main() {
     
             glob.set("println", Func::from(println)).unwrap();
     
+            if args.debug {
+                println!("=== EVAL ===");
+            }
+            
             ctx.compile(file, compiled).unwrap();
         });
     

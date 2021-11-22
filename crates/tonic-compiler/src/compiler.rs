@@ -62,13 +62,16 @@ impl Compiler {
                 let mut then = Compiler::new(then.into_iter());
                 then.compile();
 
-                let mut otherwise = Compiler::new(otherwise.into_iter());
-                otherwise.compile();
-
                 let mut if_ = IfElse::new(condition);
                 if_
-                    .then(then.builder())
-                    .otherwise(otherwise.builder());
+                    .then(then.builder());
+
+                if ! otherwise.is_empty() {
+                    let mut otherwise = Compiler::new(otherwise.into_iter());
+                    otherwise.compile();
+
+                    if_.otherwise(otherwise.builder());
+                }
 
                 self.builder.conditional(if_);
             },

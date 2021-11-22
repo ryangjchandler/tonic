@@ -35,7 +35,7 @@ impl IfElse {
 
 impl Display for IfElse {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "if ({}) {{\n{}\n}}{}",
+        write!(f, "if ({}) {{\n{}\n}}{}\n",
             self.condition,
             self.then,
             if let Some(otherwise) = &self.otherwise {

@@ -5,3 +5,7 @@ if 1 > 2 {
 } else {
     println("Finally!")
 }
+
+if true {
+    
+}
