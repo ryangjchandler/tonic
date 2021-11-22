@@ -15,13 +15,18 @@ struct Cli {
 }
 
 pub fn println(vs: Rest<Value>) {
-    for v in vs.into_inner().into_iter() {
-        println!("{}", match true {
+    fn stringify(v: Value) -> String {
+        match true {
             _ if v.is_string() => v.into_string().unwrap().to_string().unwrap(),
             _ if v.is_number() => v.as_number().unwrap().to_string(),
             _ if v.is_bool() => v.as_bool().unwrap().to_string(),
+            _ if v.is_array() => v.into_array().unwrap().into_iter().map(|v| stringify(v.unwrap())).collect::<Vec<String>>().join(", "),
             _ => unimplemented!(),
-        });
+        }
+    };
+
+    for v in vs.into_inner().into_iter() {
+        println!("{}", stringify(v));
     }
 }
 
