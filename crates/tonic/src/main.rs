@@ -1,9 +1,13 @@
 use tonic_compiler::compile;
-use rquickjs::{Runtime, Context, bind};
+use rquickjs::{Runtime, Context, bind, Func, Value, Rest};
 
-#[bind(object)]
-pub fn println(s: String) -> () {
-    println!("{}", s);
+pub fn println(vs: Rest<Value>) -> () {
+    for v in vs.into_inner().into_iter() {
+        println!("{}", match true {
+            _ if v.is_string() => v.into_string().unwrap().to_string().unwrap(),
+            _ => unimplemented!(),
+        });
+    } 
 }
 
 fn main() {
@@ -18,16 +22,21 @@ fn main() {
     }
 
     let runtime = Runtime::new().unwrap();
-    let context = Context::full(&runtime).unwrap();
+    let context: rquickjs::Context = Context::full(&runtime).unwrap();
 
     #[cfg(debug_assertions)]
     println!("=== EVAL ===");
     
-    context.with(|ctx| {
+    context.with(|ctx: rquickjs::Ctx| {
         let glob = ctx.globals();
-        glob.init_def::<Println>().unwrap();
 
-        let res: () = ctx.eval(compiled).unwrap();
+        glob.set("println", Func::from(println)).unwrap();
+
+        ctx.eval::<(), _>(r#"
+            println("Printing!", "testing!")
+        "#).unwrap();
+
+        // let res: () = ctx.eval(compiled).unwrap();
     })
 }
 
