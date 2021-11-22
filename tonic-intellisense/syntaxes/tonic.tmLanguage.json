@@ -1,0 +1,46 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Tonic",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.tonic",
+					"match": "\\b(if|else|while|return|break|continue|fn|let)\\b"
+				},
+				{
+					"name": "constant.language.tonic",
+					"match": "\\b(true|false)\\b"
+				},
+				{
+					"name": "keyword.operator.tonic",
+					"match": "(=>)|(->)|[-:=*!.+|%/<>;]"
+				},
+				{
+					"name": "entity.name",
+					"match": "[$a-zA-Z_]+"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.tonic",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.tonic",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.tonic"
+}
