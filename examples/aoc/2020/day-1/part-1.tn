@@ -1,0 +1,19 @@
+use File from "@std/fs"
+
+let numbers = File.read(__DIR__ + "/input.txt").lines().map(fn (number) {
+    return number.toNumber()
+})
+
+let target = 2020
+let results = []
+
+numbers.forEach(fn (first, i) {
+    let pair = target - first
+
+    if numbers.includes(pair) {
+        results[] = pair * first
+    }
+})
+
+println(results)
+println("Finished!")

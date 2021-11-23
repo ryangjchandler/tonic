@@ -1,5 +1,5 @@
 use tonic_compiler::compile;
-use rquickjs::{BuiltinLoader, BuiltinResolver, FileResolver, Runtime, ModuleLoader, ScriptLoader, Context, Func, Value, Rest, bind};
+use rquickjs::{BuiltinLoader, BuiltinResolver, FileResolver, Runtime, ModuleLoader, ScriptLoader, Context, Func, Value, Rest, bind, qjs::JSValue};
 use rustyline::{Editor, error::ReadlineError};
 use structopt::StructOpt;
 
@@ -13,6 +13,8 @@ struct Cli {
 
     file: Option<String>,
 }
+
+const POLYFILL: &str = include_str!("polyfill.js");
 
 pub fn println(vs: Rest<Value>) {
     fn stringify(v: Value) -> String {
@@ -42,6 +44,7 @@ mod fs {
 
     impl File {
         pub fn new(path: String) -> Self {
+            // TODO: Check the file exists before trying to read it.
             Self {
                 path: path.clone(),
                 contents: std::fs::read_to_string(path).unwrap(),
@@ -96,7 +99,13 @@ fn main() {
     
     if let Some(file) = args.file {
         let contents = read(file.clone());
-        let compiled = if args.raw { contents } else { compile(&contents[..]) };
+        let compiled = [
+            POLYFILL.to_string(),
+            if args.raw { contents } else { compile(&contents[..]) }
+        ].join("\n");
+
+        let fqp = std::fs::canonicalize(file.clone()).unwrap();
+        let fqd = fqp.parent().unwrap();
     
         if args.debug {
             println!("=== JS OUTPUT ===");
@@ -107,6 +116,8 @@ fn main() {
             let glob = ctx.globals();
     
             glob.set("println", Func::from(println)).unwrap();
+            glob.set("__FILE__", fqp.to_str()).unwrap();
+            glob.set("__DIR__", fqd.to_str()).unwrap();
     
             if args.debug {
                 println!("=== EVAL ===");
