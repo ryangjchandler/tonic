@@ -115,6 +115,8 @@ impl Compiler {
                         Op::Divide => "/",
                         Op::Equals => "===",
                         Op::NotEquals => "!==",
+                        Op::And => "&&",
+                        Op::Or => "||",
                         _ => unimplemented!(),
                     }).to_string(),
                     self.compile_expression(*right),

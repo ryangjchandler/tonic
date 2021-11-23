@@ -44,6 +44,9 @@ pub enum TokenKind {
     Percent,
     DoubleAsterisk,
 
+    And,
+    Or,
+
     Equals,
     EqualsEquals,
     NotEquals,

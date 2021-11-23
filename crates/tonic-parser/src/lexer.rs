@@ -201,7 +201,7 @@ fn is_valid_string_wrapper(c: char) -> bool {
 }
 
 fn is_valid_symbol_char(c: char) -> bool {
-    ['+', '-', '*', '/', '%', '{', '}', '(', ')', '[', ']', ':', ';', ',', '=', '!', '>', '<', '.'].contains(&c)
+    ['+', '-', '*', '/', '%', '{', '}', '(', ')', '[', ']', ':', ';', ',', '=', '!', '>', '<', '.', '&', '|'].contains(&c)
 }
 
 fn is_valid_identifier_char(c: char) -> bool {
@@ -235,6 +235,8 @@ fn symbol(s: &str) -> Option<TokenKind> {
         "<=" => TokenKind::LessThanEquals,
         "." => TokenKind::Dot,
         "!" => TokenKind::Not,
+        "&&" => TokenKind::And,
+        "||" => TokenKind::Or,
         _ => return None
     })
 }
