@@ -85,11 +85,18 @@ impl Compiler {
     }
 
     fn compile_expression(&mut self, expression: Expression) -> JsExpression {
+        use std::collections::HashMap;
+
         match expression {
             Expression::String(s) => s.into(),
             Expression::Number(n) => n.into(),
             Expression::Bool(b) => b.into(),
             Expression::Array(items) => items.into_iter().map(|i| self.compile_expression(i)).collect::<Vec<JsExpression>>().into(),
+            Expression::Map(members) => {
+                let members = members.into_iter().map(|(k, v)| (k, self.compile_expression(v))).collect::<HashMap<String, JsExpression>>();
+
+                JsExpression::Object(members)
+            },
             Expression::Identifier(i) => JsExpression::identifier(i),
             Expression::Infix(left, op, right) => {
                 JsExpression::from((

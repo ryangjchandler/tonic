@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter, Result};
+use std::collections::HashMap;
 use crate::Builder;
 
 #[derive(Debug, Clone)]
@@ -8,6 +9,7 @@ pub enum Expression {
     Bool(bool),
     Null,
     Array(Vec<Self>),
+    Object(HashMap<String, Self>),
     Index(Box<Self>, Box<Self>),
     Dot(Box<Self>, Box<Self>),
     Infix(Box<Self>, String, Box<Self>),
@@ -51,6 +53,10 @@ impl Expression {
 
     pub fn closure(parameters: Vec<Self>, body: Builder) -> Self {
         Self::Closure(parameters, body)
+    }
+
+    pub fn object(members: HashMap<String, Self>) -> Self {
+        Self::Object(members)
     }
 }
 
@@ -128,6 +134,16 @@ impl Display for Expression {
             Expression::Bool(b) => b.to_string(),
             Expression::Null => "null".into(),
             Expression::Array(items) => format!("[{}]", items.iter().map(|i| i.to_string()).collect::<Vec<String>>().join(", ")),
+            Expression::Object(members) => {
+                let mut starter = String::from("{\n");
+
+                for (key, value) in members {
+                    starter.push_str(&format!("\"{}\": {},\n", key, value));
+                }
+
+                starter.push_str("\n}");
+                starter
+            },
             Expression::Index(target, index) => format!("{}[{}]", *target, *index),
             Expression::Dot(target, index) => format!("{}.{}", *target, *index),
             Expression::Identifier(i) => i.to_string(),
@@ -171,6 +187,14 @@ mod tests {
     #[test]
     fn arrays() {
         assert_eq!("[1, 2, 3]", Expression::from(vec![1.into(), 2.into(), 3.into()]).to_string().as_str());
+    }
+
+    #[test]
+    fn objects() {
+        let mut members = HashMap::new();
+        members.insert("foo".to_owned(), Expression::String("bar".to_owned()));
+
+        assert_eq!("{\n\"foo\": \"bar\",\n\n}", Expression::object(members).to_string().as_str());
     }
 
     #[test]
