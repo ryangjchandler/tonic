@@ -1,4 +1,5 @@
 use crate::{Statement, Expression, Token, TokenKind, Lexer, Type, Parameter, Span};
+use std::collections::HashMap;
 
 pub type Program = Vec<Statement>;
 
@@ -189,7 +190,7 @@ impl<'p> Parser<'p> {
     }
 
     fn expect(&mut self, kind: TokenKind) -> ParserResult<()> {
-        if kind == self.current.kind {
+        if std::mem::discriminant(&kind) == std::mem::discriminant(&self.current.kind) {
             self.read();
 
             Ok(())
@@ -241,6 +242,29 @@ impl<'p> Parser<'p> {
                 self.expect(TokenKind::RightBracket)?;
 
                 Expression::Array(items)
+            },
+            TokenKind::LeftBrace => {
+                self.read();
+
+                let mut members = HashMap::new();
+
+                while self.current.kind != TokenKind::RightBrace {
+                    let key = self.string()?;
+
+                    self.expect(TokenKind::Colon)?;
+
+                    let value = self.expression(0)?;
+
+                    members.insert(key, value);
+
+                    if self.current.kind == TokenKind::Comma {
+                        self.read();
+                    }
+                }
+
+                self.expect(TokenKind::RightBrace)?;
+
+                Expression::Map(members)
             },
             TokenKind::Fn => {
                 self.expect(TokenKind::Fn)?;
@@ -318,6 +342,17 @@ impl<'p> Parser<'p> {
         }
 
         Ok(lhs)
+    }
+
+    fn string(&mut self) -> ParserResult<String> {
+        match self.current.kind.clone() {
+            TokenKind::String(i) => {
+                self.read();
+
+                Ok(i)
+            },
+            _ => Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::UnexpectedToken(format!("{:?}", self.current.kind), Some("String".to_owned())) })
+        }
     }
 
     fn identifier(&mut self) -> ParserResult<String> {
@@ -487,6 +522,33 @@ fn postfix(parser: &mut Parser, lhs: Expression, kind: &TokenKind) -> ParserResu
 mod tests {
     use super::*;
     use crate::Op;
+
+    macro_rules! map {
+        ($($key:expr => $value:expr),+) => {
+            {
+                let mut m = ::std::collections::HashMap::new();
+                $(
+                    m.insert($key, $value);
+                )+
+                m
+            }
+        };
+    }
+
+    #[test]
+    fn maps() {
+        assert_eq!(parse(r##"
+        {
+            "foo": "bar"
+        }
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Map(map!{
+                    String::from("foo") => Expression::String("bar".to_owned())
+                })
+            }
+        ])
+    }
 
     #[test]
     fn arrays() {

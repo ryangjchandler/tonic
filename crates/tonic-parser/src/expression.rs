@@ -1,5 +1,6 @@
 use crate::TokenKind;
 use crate::{Parameter, Statement};
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub enum Expression {
@@ -7,6 +8,7 @@ pub enum Expression {
     Number(f64),
     Bool(bool),
     Array(Vec<Expression>),
+    Map(HashMap<String, Expression>),
     Identifier(String),
     Prefix(Op, Box<Expression>),
     Infix(Box<Expression>, Op, Box<Expression>),
