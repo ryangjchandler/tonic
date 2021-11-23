@@ -42,6 +42,7 @@ pub enum Op {
     Not,
     And,
     Or,
+    Mod,
 }
 
 impl From<TokenKind> for Op {
@@ -61,6 +62,7 @@ impl From<TokenKind> for Op {
             TokenKind::Not => Self::Not,
             TokenKind::And => Self::And,
             TokenKind::Or => Self::Or,
+            TokenKind::Percent => Self::Mod,
             _ => todo!()
         }
     }
@@ -83,6 +85,7 @@ impl From<&TokenKind> for Op {
             TokenKind::Not => Self::Not,
             TokenKind::And => Self::And,
             TokenKind::Or => Self::Or,
+            TokenKind::Percent => Self::Mod,
             _ => todo!()
         }
     }

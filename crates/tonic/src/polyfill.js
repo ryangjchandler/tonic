@@ -11,6 +11,16 @@
         return this.length
     }
 
+    Number.prototype.floor = function () {
+        return Math.floor(this)
+    }
+
+    Number.prototype.forEach = function (callback) {
+        for (let i = 0; i < this; i++) {
+            callback(i)
+        }
+    }
+
     String.prototype.toNumber = function () {
         return Number.parseInt(this)
     }

@@ -117,6 +117,7 @@ impl Compiler {
                         Op::NotEquals => "!==",
                         Op::And => "&&",
                         Op::Or => "||",
+                        Op::Mod => "%",
                         _ => unimplemented!(),
                     }).to_string(),
                     self.compile_expression(*right),
