@@ -32,55 +32,40 @@ pub fn println(vs: Rest<Value>) {
 
 #[bind(module, public)]
 #[quickjs(bare)]
-mod http {
-    use std::collections::HashMap;
-    use ureq::{get, post, Request};
-
-    #[derive(Clone)]
-    pub enum ClientMethod {
-        Get,
-        Post,
-    }
-
+mod fs {
     #[derive(Clone)]
     #[quickjs(cloneable)]
-    pub struct Client {
-        method: ClientMethod,
+    pub struct File {
         path: String,
-        headers: HashMap<String, String>,
+        contents: String,
     }
 
-    impl Client {
-        pub fn new() -> Self {
+    impl File {
+        pub fn new(path: String) -> Self {
             Self {
-                method: ClientMethod::Get,
-                path: String::default(),
-                headers: HashMap::default(),
+                path: path.clone(),
+                contents: std::fs::read_to_string(path).unwrap(),
             }
         }
 
-        pub fn get(&mut self, path: String) -> &mut Self {
-            self.path = path;
-            self.method = ClientMethod::Get;
-            self
+        pub fn path(&self) -> String {
+            self.path.clone()
         }
 
-        pub fn header(&mut self, name: String, value: String) -> &mut Self {
-            self.headers.insert(name, value);
-            self
+        pub fn lines(&self) -> Vec<&str> {
+            self.contents.lines().collect()
         }
 
-        pub fn send(&self) -> String {
-            let mut request: Request = match self.method {
-                ClientMethod::Get => get(&self.path),
-                ClientMethod::Post => post(&self.path),
-            };
+        pub fn is_empty(&self) -> bool {
+            self.contents.is_empty()
+        }
 
-            for (header, value) in self.headers.clone() {
-                request = request.set(&header, &value);
-            }
+        pub fn exists(path: String) -> bool {
+            std::fs::metadata(path).is_ok()
+        }
 
-            request.call().unwrap().into_string().unwrap()
+        pub fn read(path: String) -> Self {
+            Self::new(path)
         }
     }
 }
@@ -93,7 +78,7 @@ fn main() {
 
     let resolver = (
         BuiltinResolver::default()
-            .with_module("@std/http"),
+            .with_module("@std/fs"),
         FileResolver::default()
             .with_path("./"),
     );
@@ -101,7 +86,7 @@ fn main() {
     let loader = (
         BuiltinLoader::default(),
         ModuleLoader::default()
-            .with_module("@std/http", Http),
+            .with_module("@std/fs", Fs),
         ScriptLoader::default(),
     );
 
