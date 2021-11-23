@@ -201,7 +201,7 @@ fn is_valid_string_wrapper(c: char) -> bool {
 }
 
 fn is_valid_symbol_char(c: char) -> bool {
-    ['+', '-', '*', '/', '%', '{', '}', '(', ')', '[', ']', ':', ';', ',', '=', '!', '>', '<'].contains(&c)
+    ['+', '-', '*', '/', '%', '{', '}', '(', ')', '[', ']', ':', ';', ',', '=', '!', '>', '<', '.'].contains(&c)
 }
 
 fn is_valid_identifier_char(c: char) -> bool {
@@ -233,6 +233,7 @@ fn symbol(s: &str) -> Option<TokenKind> {
         ">=" => TokenKind::GreaterThanEquals,
         "<" => TokenKind::LessThan,
         "<=" => TokenKind::LessThanEquals,
+        "." => TokenKind::Dot,
         _ => return None
     })
 }
@@ -275,7 +276,7 @@ mod tests {
 
     #[test]
     fn symbols() {
-        matches("+ - * / % ** ( ) { } [ ] : :: ; , = == != > < >= <=", vec![
+        matches("+ - * / % ** ( ) { } [ ] : :: ; , = == != > < >= <= .", vec![
             TokenKind::Plus,
             TokenKind::Minus,
             TokenKind::Asterisk,
@@ -299,6 +300,7 @@ mod tests {
             TokenKind::LessThan,
             TokenKind::GreaterThanEquals,
             TokenKind::LessThanEquals,
+            TokenKind::Dot,
         ]);
     }
 

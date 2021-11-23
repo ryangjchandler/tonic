@@ -13,6 +13,7 @@ pub enum Expression {
     Call(Box<Expression>, Vec<Expression>),
     Assign(Box<Expression>, Box<Expression>),
     Index(Box<Expression>, Option<Box<Expression>>),
+    Dot(Box<Expression>, Box<Expression>),
     Closure(Vec<Parameter>, Vec<Statement>),
 }
 

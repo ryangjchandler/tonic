@@ -137,6 +137,12 @@ impl Compiler {
                     )
                 }
             },
+            Expression::Dot(object, property) => {
+                JsExpression::dot(
+                    self.compile_expression(*object),
+                    self.compile_expression(*property)
+                )
+            },
             Expression::Closure(parameters, body) => {
                 let mut body = Compiler::new(body.into_iter());
                 body.compile();
