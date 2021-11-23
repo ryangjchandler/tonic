@@ -53,6 +53,30 @@ impl<'p> Parser<'p> {
             TokenKind::Fn => self.parse_fn()?,
             TokenKind::If => self.parse_if()?,
             TokenKind::While => self.parse_while()?,
+            TokenKind::Use => {
+                self.read();
+
+                let mut imports = Vec::new();
+
+                while self.current.kind != TokenKind::From {
+                    if imports.len() > 1 {
+                        self.expect(TokenKind::Comma)?;
+                    }
+
+                    let import = self.identifier()?;
+
+                    imports.push(import);
+                }
+
+                self.expect(TokenKind::From)?;
+
+                let module = self.string()?;
+
+                Statement::Use {
+                    module,
+                    imports
+                }
+            },
             TokenKind::Break => {
                 if ! self.in_breakable_scope {
                     return Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::InvalidBreakableScope })
@@ -533,6 +557,20 @@ mod tests {
                 m
             }
         };
+    }
+
+    #[test]
+    fn uses() {
+        assert_eq!(parse(r##"
+            use File from "@std/fs"
+        "##), vec![
+            Statement::Use {
+                module: String::from("@std/fs"),
+                imports: vec![
+                    String::from("File"),
+                ]
+            }
+        ]);
     }
 
     #[test]

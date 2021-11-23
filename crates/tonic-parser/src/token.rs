@@ -14,6 +14,8 @@ pub enum TokenKind {
     Return,
     Break,
     Continue,
+    Use,
+    From,
 
     True,
     False,
