@@ -18,6 +18,9 @@ impl Compiler {
 
     fn compile_statement(&mut self, statement: Statement) {
         match statement {
+            Statement::Use { module, imports } => {
+                self.builder.import(imports, module);
+            },
             Statement::Let { identifier, initial, .. } => {
                 let mut var = Var::new();
                 
