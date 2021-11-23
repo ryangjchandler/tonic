@@ -59,7 +59,7 @@ impl<'p> Parser<'p> {
                 let mut imports = Vec::new();
 
                 while self.current.kind != TokenKind::From {
-                    if imports.len() > 1 {
+                    if imports.len() > 0 {
                         self.expect(TokenKind::Comma)?;
                     }
 
@@ -563,11 +563,19 @@ mod tests {
     fn uses() {
         assert_eq!(parse(r##"
             use File from "@std/fs"
+            use File, Dir from "@std/fs"
         "##), vec![
             Statement::Use {
                 module: String::from("@std/fs"),
                 imports: vec![
                     String::from("File"),
+                ]
+            },
+            Statement::Use {
+                module: String::from("@std/fs"),
+                imports: vec![
+                    String::from("File"),
+                    String::from("Dir"),
                 ]
             }
         ]);
