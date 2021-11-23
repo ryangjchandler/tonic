@@ -1,0 +1,33 @@
+use File from "@std/fs"
+
+let lines = File.read(__DIR__ + "/input.txt").lines()
+let passes = []
+
+lines.forEach(fn (line) {
+    let constraints = line.before(":").split(" ")
+    let password = line.after(":").trim()
+    
+    let needle = constraints[1]
+    let bounds = constraints[0].split("-").map(fn (b) { return b.toNumber() })
+
+    if ! password.contains(needle) {
+        return false
+    }
+
+    let needle_in_string = password.split("").filter(fn (char) {
+        return char == needle
+    })
+
+    if needle_in_string.len() < bounds[0] {
+        return false
+    }
+
+    if needle_in_string.len() > bounds[1] {
+        return false
+    }
+
+    passes[] = [needle, bounds, needle_in_string]
+})
+
+println("Number of valid passwords: " + passes.len())
+println("Finished!")

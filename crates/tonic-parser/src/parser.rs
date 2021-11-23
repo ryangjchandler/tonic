@@ -472,12 +472,12 @@ impl<'p> Parser<'p> {
 }
 
 fn is_prefix(kind: &TokenKind) -> bool {
-    [TokenKind::Minus].contains(kind)
+    [TokenKind::Minus, TokenKind::Not].contains(kind)
 }
 
 fn prefix_binding_power(kind: &TokenKind) -> ((), u8) {
     match kind {
-        TokenKind::Minus => ((), 99),
+        TokenKind::Minus | TokenKind::Not => ((), 99),
         _ => unreachable!()
     }
 }

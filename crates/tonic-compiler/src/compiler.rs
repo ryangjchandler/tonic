@@ -162,6 +162,13 @@ impl Compiler {
                     body.builder()
                 )
             },
+            Expression::Prefix(op, value) => {
+                JsExpression::Prefix(match op {
+                    Op::Not => "!".to_owned(),
+                    Op::Subtract => "-".to_owned(),
+                    _ => unreachable!()
+                }, Box::new(self.compile_expression(*value)))
+            },
             _ => unimplemented!("compile expression {:?}", expression),
         }
     }

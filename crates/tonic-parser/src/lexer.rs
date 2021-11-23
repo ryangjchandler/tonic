@@ -234,6 +234,7 @@ fn symbol(s: &str) -> Option<TokenKind> {
         "<" => TokenKind::LessThan,
         "<=" => TokenKind::LessThanEquals,
         "." => TokenKind::Dot,
+        "!" => TokenKind::Not,
         _ => return None
     })
 }
@@ -280,7 +281,7 @@ mod tests {
 
     #[test]
     fn symbols() {
-        matches("+ - * / % ** ( ) { } [ ] : :: ; , = == != > < >= <= .", vec![
+        matches("+ - * / % ** ( ) { } [ ] : :: ; , = == != > < >= <= . !", vec![
             TokenKind::Plus,
             TokenKind::Minus,
             TokenKind::Asterisk,
@@ -305,6 +306,7 @@ mod tests {
             TokenKind::GreaterThanEquals,
             TokenKind::LessThanEquals,
             TokenKind::Dot,
+            TokenKind::Not,
         ]);
     }
 

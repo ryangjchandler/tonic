@@ -51,6 +51,7 @@ pub enum TokenKind {
     GreaterThanEquals,
     LessThan,
     LessThanEquals,
+    Not,
 
     Eof,
 }
