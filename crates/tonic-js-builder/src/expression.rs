@@ -138,7 +138,7 @@ impl Display for Expression {
                 let mut starter = String::from("{\n");
 
                 for (key, value) in members {
-                    starter.push_str(&format!("\"{}\": {}", key, value));
+                    starter.push_str(&format!("\"{}\": {},\n", key, value));
                 }
 
                 starter.push_str("\n}");
@@ -194,7 +194,7 @@ mod tests {
         let mut members = HashMap::new();
         members.insert("foo".to_owned(), Expression::String("bar".to_owned()));
 
-        assert_eq!("{\n\"foo\": \"bar\"\n}", Expression::object(members).to_string().as_str());
+        assert_eq!("{\n\"foo\": \"bar\",\n\n}", Expression::object(members).to_string().as_str());
     }
 
     #[test]

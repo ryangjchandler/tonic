@@ -1,0 +1,6 @@
+let people = {
+    "Ryan": 100,
+    "John": 99,
+}
+
+println(people["Ryan"])
