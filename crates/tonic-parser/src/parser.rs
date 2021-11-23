@@ -298,11 +298,24 @@ impl<'p> Parser<'p> {
                 let params = self.parameters()?;
 
                 self.expect(TokenKind::RightParen)?;
-                self.expect(TokenKind::LeftBrace)?;
 
-                let body = self.block(TokenKind::RightBrace)?;
+                dbg!(&self.current.kind);
 
-                self.expect(TokenKind::RightBrace)?;
+                let body = if self.current.kind == TokenKind::Arrow {
+                    self.read();
+
+                    let expression = self.expression(0)?;
+
+                    vec![Statement::Return { expression }]
+                } else {
+                    self.expect(TokenKind::LeftBrace)?;
+                    
+                    let body = self.block(TokenKind::RightBrace)?;
+
+                    self.expect(TokenKind::RightBrace)?;
+
+                    body
+                };
 
                 Expression::Closure(params, body)
             },
@@ -559,6 +572,21 @@ mod tests {
                 m
             }
         };
+    }
+
+    #[test]
+    fn short_closures() {
+        assert_eq!(parse(r##"
+            (fn () -> "testing")
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Closure(vec![], vec![
+                    Statement::Return {
+                        expression: Expression::String("testing".to_owned())
+                    }
+                ])
+            }
+        ]);
     }
 
     #[test]
