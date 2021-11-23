@@ -447,7 +447,7 @@ fn infix(lhs: Expression, kind: &TokenKind, rhs: Expression) -> Expression {
 
 fn postfix_binding_power(kind: &TokenKind) -> Option<(BindingPower, ())> {
     Some(match kind {
-        TokenKind::LeftParen | TokenKind::LeftBracket => (19, ()),
+        TokenKind::LeftParen | TokenKind::LeftBracket | TokenKind::Dot => (19, ()),
         _ => return None
     })
 }
@@ -473,6 +473,11 @@ fn postfix(parser: &mut Parser, lhs: Expression, kind: &TokenKind) -> ParserResu
             parser.expect(TokenKind::RightBracket)?;
 
             Ok(Expression::Index(lhs.boxed(), Some(property.boxed())))
+        },
+        TokenKind::Dot => {
+            let path = parser.expression(19)?;
+
+            Ok(Expression::Dot(lhs.boxed(), path.boxed()))
         },
         _ => todo!()
     }
