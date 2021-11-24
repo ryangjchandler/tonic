@@ -14,6 +14,8 @@ pub enum TokenKind {
     Return,
     Break,
     Continue,
+    Use,
+    From,
 
     True,
     False,
@@ -27,6 +29,7 @@ pub enum TokenKind {
     SemiColon,
     Comma,
     Dot,
+    Arrow,
 
     LeftParen,
     RightParen,
@@ -42,13 +45,21 @@ pub enum TokenKind {
     Percent,
     DoubleAsterisk,
 
+    And,
+    Or,
+
     Equals,
+    PlusEquals,
+    MinusEquals,
+    AsteriskEquals,
+    SlashEquals,
     EqualsEquals,
     NotEquals,
     GreaterThan,
     GreaterThanEquals,
     LessThan,
     LessThanEquals,
+    Not,
 
     Eof,
 }

@@ -1,0 +1,27 @@
+use File from "@std/fs"
+
+let rows = File.read(__DIR__ + "/input.txt").lines().map(fn (line) {
+    return line.split("")
+})
+
+let is_tree_at_coordinates = fn (x, y) {
+    let map_x = x % 31
+
+    return rows[y][map_x] == "#"
+}
+
+let x = 0
+let y = 0
+let trees = 0
+
+while y < rows.len() {
+    if is_tree_at_coordinates(x, y) {
+        trees = trees + 1
+    }
+
+    x = x + 3
+    y = y + 1
+}
+
+println("Number of trees encountered: " + trees)
+println("Finished!")

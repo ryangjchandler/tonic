@@ -201,7 +201,7 @@ fn is_valid_string_wrapper(c: char) -> bool {
 }
 
 fn is_valid_symbol_char(c: char) -> bool {
-    ['+', '-', '*', '/', '%', '{', '}', '(', ')', '[', ']', ':', ';', ',', '=', '!', '>', '<', '.'].contains(&c)
+    ['+', '-', '*', '/', '%', '{', '}', '(', ')', '[', ']', ':', ';', ',', '=', '!', '>', '<', '.', '&', '|'].contains(&c)
 }
 
 fn is_valid_identifier_char(c: char) -> bool {
@@ -234,6 +234,14 @@ fn symbol(s: &str) -> Option<TokenKind> {
         "<" => TokenKind::LessThan,
         "<=" => TokenKind::LessThanEquals,
         "." => TokenKind::Dot,
+        "!" => TokenKind::Not,
+        "&&" => TokenKind::And,
+        "||" => TokenKind::Or,
+        "->" => TokenKind::Arrow,
+        "+=" => TokenKind::PlusEquals,
+        "-=" => TokenKind::MinusEquals,
+        "*=" => TokenKind::AsteriskEquals,
+        "/=" => TokenKind::SlashEquals,
         _ => return None
     })
 }
@@ -250,6 +258,8 @@ fn keyword(s: &str) -> Option<TokenKind> {
         "continue" => TokenKind::Continue,
         "true" => TokenKind::True,
         "false" => TokenKind::False,
+        "use" => TokenKind::Use,
+        "from" => TokenKind::From,
         _ => return None
     })
 }
@@ -260,7 +270,7 @@ mod tests {
 
     #[test]
     fn keywords() {
-        matches("fn if else while return break continue let true false", vec![
+        matches("fn if else while return break continue let true false use from", vec![
             TokenKind::Fn,
             TokenKind::If,
             TokenKind::Else,
@@ -271,12 +281,14 @@ mod tests {
             TokenKind::Let,
             TokenKind::True,
             TokenKind::False,
+            TokenKind::Use,
+            TokenKind::From,
         ]);
     }
 
     #[test]
     fn symbols() {
-        matches("+ - * / % ** ( ) { } [ ] : :: ; , = == != > < >= <= .", vec![
+        matches("+ - * / % ** ( ) { } [ ] : :: ; , = == != > < >= <= . ! -> += -= *= /=", vec![
             TokenKind::Plus,
             TokenKind::Minus,
             TokenKind::Asterisk,
@@ -301,6 +313,12 @@ mod tests {
             TokenKind::GreaterThanEquals,
             TokenKind::LessThanEquals,
             TokenKind::Dot,
+            TokenKind::Not,
+            TokenKind::Arrow,
+            TokenKind::PlusEquals,
+            TokenKind::MinusEquals,
+            TokenKind::AsteriskEquals,
+            TokenKind::SlashEquals,
         ]);
     }
 

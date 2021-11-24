@@ -13,6 +13,16 @@ impl Builder {
         }
     }
 
+    pub fn import(&mut self, items: Vec<String>, module: String) -> &mut Self {
+        self.source.push_str("import { ");
+        self.source.push_str(&items.join(", "));
+        self.source.push_str(" } from \"");
+        self.source.push_str(&module);
+        self.source.push_str("\";\n");
+
+        self
+    }
+
     pub fn var(&mut self, var: Var) -> &mut Self {
         self.source.push_str(&var.to_string());
         self

@@ -18,6 +18,9 @@ impl Compiler {
 
     fn compile_statement(&mut self, statement: Statement) {
         match statement {
+            Statement::Use { module, imports } => {
+                self.builder.import(imports, module);
+            },
             Statement::Let { identifier, initial, .. } => {
                 let mut var = Var::new();
                 
@@ -112,6 +115,13 @@ impl Compiler {
                         Op::Divide => "/",
                         Op::Equals => "===",
                         Op::NotEquals => "!==",
+                        Op::And => "&&",
+                        Op::Or => "||",
+                        Op::Mod => "%",
+                        Op::AddAssign => "+=",
+                        Op::SubtractAssign => "-=",
+                        Op::MultiplyAssign => "*=",
+                        Op::DivideAssign => "/=",
                         _ => unimplemented!(),
                     }).to_string(),
                     self.compile_expression(*right),
@@ -158,6 +168,13 @@ impl Compiler {
                     parameters.into_iter().map(|p| JsExpression::identifier(p.name)).collect::<Vec<JsExpression>>(),
                     body.builder()
                 )
+            },
+            Expression::Prefix(op, value) => {
+                JsExpression::Prefix(match op {
+                    Op::Not => "!".to_owned(),
+                    Op::Subtract => "-".to_owned(),
+                    _ => unreachable!()
+                }, Box::new(self.compile_expression(*value)))
             },
             _ => unimplemented!("compile expression {:?}", expression),
         }

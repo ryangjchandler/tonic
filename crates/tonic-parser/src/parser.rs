@@ -53,6 +53,30 @@ impl<'p> Parser<'p> {
             TokenKind::Fn => self.parse_fn()?,
             TokenKind::If => self.parse_if()?,
             TokenKind::While => self.parse_while()?,
+            TokenKind::Use => {
+                self.read();
+
+                let mut imports = Vec::new();
+
+                while self.current.kind != TokenKind::From {
+                    if imports.len() > 0 {
+                        self.expect(TokenKind::Comma)?;
+                    }
+
+                    let import = self.identifier()?;
+
+                    imports.push(import);
+                }
+
+                self.expect(TokenKind::From)?;
+
+                let module = self.string()?;
+
+                Statement::Use {
+                    module,
+                    imports
+                }
+            },
             TokenKind::Break => {
                 if ! self.in_breakable_scope {
                     return Err(ParserError { line: self.current.line, span: self.current.span, err: ParserErrorType::InvalidBreakableScope })
@@ -274,11 +298,22 @@ impl<'p> Parser<'p> {
                 let params = self.parameters()?;
 
                 self.expect(TokenKind::RightParen)?;
-                self.expect(TokenKind::LeftBrace)?;
 
-                let body = self.block(TokenKind::RightBrace)?;
+                let body = if self.current.kind == TokenKind::Arrow {
+                    self.read();
 
-                self.expect(TokenKind::RightBrace)?;
+                    let expression = self.expression(0)?;
+
+                    vec![Statement::Return { expression }]
+                } else {
+                    self.expect(TokenKind::LeftBrace)?;
+                    
+                    let body = self.block(TokenKind::RightBrace)?;
+
+                    self.expect(TokenKind::RightBrace)?;
+
+                    body
+                };
 
                 Expression::Closure(params, body)
             },
@@ -448,12 +483,12 @@ impl<'p> Parser<'p> {
 }
 
 fn is_prefix(kind: &TokenKind) -> bool {
-    [TokenKind::Minus].contains(kind)
+    [TokenKind::Minus, TokenKind::Not].contains(kind)
 }
 
 fn prefix_binding_power(kind: &TokenKind) -> ((), u8) {
     match kind {
-        TokenKind::Minus => ((), 99),
+        TokenKind::Minus | TokenKind::Not => ((), 99),
         _ => unreachable!()
     }
 }
@@ -468,7 +503,9 @@ fn infix_binding_power(kind: &TokenKind) -> Option<(BindingPower, BindingPower)>
         TokenKind::Plus | TokenKind::Minus => (11, 12),
         TokenKind::GreaterThan | TokenKind::GreaterThanEquals | TokenKind::LessThan | TokenKind::LessThanEquals => (9, 10),
         TokenKind::EqualsEquals | TokenKind::NotEquals => (7, 8),
-        TokenKind::Equals => (2, 1),
+        TokenKind::And => (5, 6),
+        TokenKind::Or => (3, 4),
+        TokenKind::Equals | TokenKind::PlusEquals | TokenKind::MinusEquals | TokenKind::AsteriskEquals | TokenKind::SlashEquals => (2, 1),
         _ => return None
     })
 }
@@ -533,6 +570,81 @@ mod tests {
                 m
             }
         };
+    }
+
+    #[test]
+    fn short_closures() {
+        assert_eq!(parse(r##"
+            (fn () -> "testing")
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Closure(vec![], vec![
+                    Statement::Return {
+                        expression: Expression::String("testing".to_owned())
+                    }
+                ])
+            }
+        ]);
+    }
+
+    #[test]
+    fn closures() {
+        assert_eq!(parse(r##"
+        (fn () {
+
+        })
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Closure(vec![], vec![])
+            }
+        ]);
+
+        assert_eq!(parse(r##"
+            (fn (name) {
+
+            })
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Closure(vec![
+                    Parameter::new("name", None)
+                ], vec![])
+            }
+        ]);
+
+        assert_eq!(parse(r##"
+            (fn (name, age) {
+
+            })
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Closure(vec![
+                    Parameter::new("name", None),
+                    Parameter::new("age", None),
+                ], vec![])
+            }
+        ]);
+    }
+
+    #[test]
+    fn uses() {
+        assert_eq!(parse(r##"
+            use File from "@std/fs"
+            use File, Dir from "@std/fs"
+        "##), vec![
+            Statement::Use {
+                module: String::from("@std/fs"),
+                imports: vec![
+                    String::from("File"),
+                ]
+            },
+            Statement::Use {
+                module: String::from("@std/fs"),
+                imports: vec![
+                    String::from("File"),
+                    String::from("Dir"),
+                ]
+            }
+        ]);
     }
 
     #[test]

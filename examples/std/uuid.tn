@@ -1,0 +1,3 @@
+use Uuid from "@std/uuid"
+
+println(Uuid.generate())

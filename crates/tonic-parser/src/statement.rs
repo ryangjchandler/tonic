@@ -33,6 +33,10 @@ pub enum Statement {
     Expression {
         expression: Expression,
     },
+    Use {
+        module: String,
+        imports: Vec<String>,
+    },
     Break,
     Continue,
 }

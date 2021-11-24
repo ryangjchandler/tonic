@@ -1,5 +1,5 @@
 use tonic_compiler::compile;
-use rquickjs::{BuiltinLoader, BuiltinResolver, FileResolver, Runtime, ModuleLoader, ScriptLoader, Context, Func, Value, Rest, bind};
+use rquickjs::{BuiltinLoader, BuiltinResolver, FileResolver, Runtime, ModuleLoader, ScriptLoader, Context, Func, Value, Rest, bind, qjs::JSValue};
 use rustyline::{Editor, error::ReadlineError};
 use structopt::StructOpt;
 
@@ -13,6 +13,8 @@ struct Cli {
 
     file: Option<String>,
 }
+
+const POLYFILL: &str = include_str!("polyfill.js");
 
 pub fn println(vs: Rest<Value>) {
     fn stringify(v: Value) -> String {
@@ -32,68 +34,101 @@ pub fn println(vs: Rest<Value>) {
 
 #[bind(module, public)]
 #[quickjs(bare)]
-mod http {
-    use std::collections::HashMap;
-    use ureq::{get, post, Request};
-
+mod fs {
     #[derive(Clone)]
-    pub enum ClientMethod {
-        Get,
-        Post,
+    #[quickjs(cloneable)]
+    pub struct File {
+        path: String,
+        contents: String,
     }
+
+    impl File {
+        pub fn new(path: String) -> Self {
+            // TODO: Check the file exists before trying to read it.
+            Self {
+                path: path.clone(),
+                contents: std::fs::read_to_string(path).unwrap(),
+            }
+        }
+
+        pub fn path(&self) -> String {
+            self.path.clone()
+        }
+
+        pub fn lines(&self) -> Vec<&str> {
+            self.contents.lines().collect()
+        }
+
+        pub fn is_empty(&self) -> bool {
+            self.contents.is_empty()
+        }
+
+        pub fn exists(path: String) -> bool {
+            std::fs::metadata(path).is_ok()
+        }
+
+        pub fn read(path: String) -> Self {
+            Self::new(path)
+        }
+    }
+}
+
+#[bind(module, public)]
+#[quickjs(bare)]
+mod env {
+    use std::env::{var};
+
+    pub fn get(name: String) -> String {
+        match var(name) {
+            Ok(value) => value,
+            Err(_) => unreachable!()
+        }
+    }
+
+    pub fn has(name: String) -> bool {
+        var(name).is_ok()
+    }
+}
+
+#[bind(module, public)]
+#[quickjs(bare)]
+mod uuid {
+    use uuid::Uuid as UuidGenerator;
 
     #[derive(Clone)]
     #[quickjs(cloneable)]
-    pub struct Client {
-        method: ClientMethod,
-        path: String,
-        headers: HashMap<String, String>,
+    pub struct Uuid {
+        value: String
     }
 
-    impl Client {
+    impl Uuid {
         pub fn new() -> Self {
             Self {
-                method: ClientMethod::Get,
-                path: String::default(),
-                headers: HashMap::default(),
+                value: UuidGenerator::new_v4().to_string()
             }
         }
 
-        pub fn get(&mut self, path: String) -> &mut Self {
-            self.path = path;
-            self.method = ClientMethod::Get;
-            self
+        pub fn to_string(&self) -> String {
+            self.value.clone()
         }
 
-        pub fn header(&mut self, name: String, value: String) -> &mut Self {
-            self.headers.insert(name, value);
-            self
-        }
-
-        pub fn send(&self) -> String {
-            let mut request: Request = match self.method {
-                ClientMethod::Get => get(&self.path),
-                ClientMethod::Post => post(&self.path),
-            };
-
-            for (header, value) in self.headers.clone() {
-                request = request.set(&header, &value);
-            }
-
-            request.call().unwrap().into_string().unwrap()
+        pub fn generate() -> String {
+            UuidGenerator::new_v4().to_string()
         }
     }
 }
 
 fn main() {
     let args = Cli::from_args();
-    let runtime: Runtime = Runtime::new().unwrap();
 
+    let runtime: Runtime = Runtime::new().unwrap();
     runtime.set_max_stack_size(256 * 2048);
 
     let resolver = (
         BuiltinResolver::default()
-            .with_module("@std/http"),
+            .with_module("@std/fs")
+            .with_module("@std/env")
+            .with_module("@std/uuid"),
         FileResolver::default()
             .with_path("./"),
     );
@@ -101,7 +136,9 @@ fn main() {
     let loader = (
         BuiltinLoader::default(),
         ModuleLoader::default()
-            .with_module("@std/http", Http),
+            .with_module("@std/fs", Fs)
+            .with_module("@std/env", Env)
+            .with_module("@std/uuid", Uuid),
         ScriptLoader::default(),
     );
 
@@ -111,7 +148,13 @@ fn main() {
     
     if let Some(file) = args.file {
         let contents = read(file.clone());
-        let compiled = if args.raw { contents } else { compile(&contents[..]) };
+        let compiled = [
+            POLYFILL.to_string(),
+            if args.raw { contents } else { compile(&contents[..]) }
+        ].join("\n");
+
+        let fqp = std::fs::canonicalize(file.clone()).unwrap();
+        let fqd = fqp.parent().unwrap();
     
         if args.debug {
             println!("=== JS OUTPUT ===");
@@ -122,6 +165,8 @@ fn main() {
             let glob = ctx.globals();
     
             glob.set("println", Func::from(println)).unwrap();
+            glob.set("__FILE__", fqp.to_str()).unwrap();
+            glob.set("__DIR__", fqd.to_str()).unwrap();
     
             if args.debug {
                 println!("=== EVAL ===");
