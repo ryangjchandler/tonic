@@ -299,8 +299,6 @@ impl<'p> Parser<'p> {
 
                 self.expect(TokenKind::RightParen)?;
 
-                dbg!(&self.current.kind);
-
                 let body = if self.current.kind == TokenKind::Arrow {
                     self.read();
 
