@@ -49,6 +49,10 @@ pub enum TokenKind {
     Or,
 
     Equals,
+    PlusEquals,
+    MinusEquals,
+    AsteriskEquals,
+    SlashEquals,
     EqualsEquals,
     NotEquals,
     GreaterThan,

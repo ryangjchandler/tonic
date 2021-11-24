@@ -238,6 +238,10 @@ fn symbol(s: &str) -> Option<TokenKind> {
         "&&" => TokenKind::And,
         "||" => TokenKind::Or,
         "->" => TokenKind::Arrow,
+        "+=" => TokenKind::PlusEquals,
+        "-=" => TokenKind::MinusEquals,
+        "*=" => TokenKind::AsteriskEquals,
+        "/=" => TokenKind::SlashEquals,
         _ => return None
     })
 }
@@ -284,7 +288,7 @@ mod tests {
 
     #[test]
     fn symbols() {
-        matches("+ - * / % ** ( ) { } [ ] : :: ; , = == != > < >= <= . ! ->", vec![
+        matches("+ - * / % ** ( ) { } [ ] : :: ; , = == != > < >= <= . ! -> += -= *= /=", vec![
             TokenKind::Plus,
             TokenKind::Minus,
             TokenKind::Asterisk,
@@ -311,6 +315,10 @@ mod tests {
             TokenKind::Dot,
             TokenKind::Not,
             TokenKind::Arrow,
+            TokenKind::PlusEquals,
+            TokenKind::MinusEquals,
+            TokenKind::AsteriskEquals,
+            TokenKind::SlashEquals,
         ]);
     }
 
