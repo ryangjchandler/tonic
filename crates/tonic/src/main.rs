@@ -90,6 +90,34 @@ mod env {
     }
 }
 
+#[bind(module, public)]
+#[quickjs(bare)]
+mod uuid {
+    use uuid::Uuid as UuidGenerator;
+
+    #[derive(Clone)]
+    #[quickjs(cloneable)]
+    pub struct Uuid {
+        value: String
+    }
+
+    impl Uuid {
+        pub fn new() -> Self {
+            Self {
+                value: UuidGenerator::new_v4().to_string()
+            }
+        }
+
+        pub fn to_string(&self) -> String {
+            self.value.clone()
+        }
+
+        pub fn generate() -> String {
+            UuidGenerator::new_v4().to_string()
+        }
+    }
+}
+
 fn main() {
     let args = Cli::from_args();
 
@@ -99,7 +127,8 @@ fn main() {
     let resolver = (
         BuiltinResolver::default()
             .with_module("@std/fs")
-            .with_module("@std/env"),
+            .with_module("@std/env")
+            .with_module("@std/uuid"),
         FileResolver::default()
             .with_path("./"),
     );
@@ -108,7 +137,8 @@ fn main() {
         BuiltinLoader::default(),
         ModuleLoader::default()
             .with_module("@std/fs", Fs)
-            .with_module("@std/env", Env),
+            .with_module("@std/env", Env)
+            .with_module("@std/uuid", Uuid),
         ScriptLoader::default(),
     );
 
