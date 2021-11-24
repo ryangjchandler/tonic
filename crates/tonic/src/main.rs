@@ -73,15 +73,33 @@ mod fs {
     }
 }
 
+#[bind(module, public)]
+#[quickjs(bare)]
+mod env {
+    use std::env::{var};
+
+    pub fn get(name: String) -> String {
+        match var(name) {
+            Ok(value) => value,
+            Err(_) => unreachable!()
+        }
+    }
+
+    pub fn has(name: String) -> bool {
+        var(name).is_ok()
+    }
+}
+
 fn main() {
     let args = Cli::from_args();
-    let runtime: Runtime = Runtime::new().unwrap();
 
+    let runtime: Runtime = Runtime::new().unwrap();
     runtime.set_max_stack_size(256 * 2048);
 
     let resolver = (
         BuiltinResolver::default()
-            .with_module("@std/fs"),
+            .with_module("@std/fs")
+            .with_module("@std/env"),
         FileResolver::default()
             .with_path("./"),
     );
@@ -89,7 +107,8 @@ fn main() {
     let loader = (
         BuiltinLoader::default(),
         ModuleLoader::default()
-            .with_module("@std/fs", Fs),
+            .with_module("@std/fs", Fs)
+            .with_module("@std/env", Env),
         ScriptLoader::default(),
     );
 
