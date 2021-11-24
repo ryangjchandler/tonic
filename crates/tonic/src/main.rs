@@ -14,7 +14,9 @@ struct Cli {
     file: Option<String>,
 }
 
-const POLYFILL: &str = include_str!("polyfill.js");
+const POLYFILL: &str = include_str!("../js/polyfill.js");
+const TMPL_MODULE: &str = include_str!("../js/tmpl.js");
+const WEB_MODULE: &str = include_str!("../dist/web.js");
 
 pub fn println(vs: Rest<Value>) {
     fn stringify(v: Value) -> String {
@@ -25,7 +27,7 @@ pub fn println(vs: Rest<Value>) {
             _ if v.is_array() => v.into_array().unwrap().into_iter().map(|v| stringify(v.unwrap())).collect::<Vec<String>>().join(", "),
             _ => unimplemented!(),
         }
-    };
+    }
 
     for v in vs.into_inner().into_iter() {
         println!("{}", stringify(v));
@@ -65,6 +67,10 @@ mod fs {
 
         pub fn exists(path: String) -> bool {
             std::fs::metadata(path).is_ok()
+        }
+
+        pub fn contents(&self) -> String {
+            self.contents.clone()
         }
 
         pub fn read(path: String) -> Self {
@@ -118,6 +124,44 @@ mod uuid {
     }
 }
 
+#[bind(module, public)]
+#[quickjs(bare)]
+mod http {
+    use tiny_http::{Server as TinyHttpServer, Response};
+    use rquickjs::{Value, Function};
+
+    #[derive(Clone)]
+    #[quickjs(cloneable)]
+    pub struct Server {
+        target: String
+    }
+
+    impl Server {
+        pub fn new(target: String) -> Self {
+            Self {
+                target,
+            }
+        }
+
+        pub fn serve(&self, callback: Value) {
+            let callback: Function = callback.into_function().unwrap();
+            let server = TinyHttpServer::http(self.target.clone()).unwrap();
+
+            for request in server.incoming_requests() {
+                let method = request.method();
+                let url = request.url();
+
+                let response = Response::from_string(callback.call::<_, String>((method.as_str(), url)).unwrap());
+                request.respond(response).unwrap();
+            }
+        }
+
+        pub fn init(target: String) -> Self {
+            Self::new(target)
+        }
+    }
+}
+
 fn main() {
     let args = Cli::from_args();
 
@@ -128,17 +172,23 @@ fn main() {
         BuiltinResolver::default()
             .with_module("@std/fs")
             .with_module("@std/env")
-            .with_module("@std/uuid"),
+            .with_module("@std/uuid")
+            .with_module("@std/tmpl")
+            .with_module("@std/http")
+            .with_module("@std/web"),
         FileResolver::default()
             .with_path("./"),
     );
 
     let loader = (
-        BuiltinLoader::default(),
+        BuiltinLoader::default()
+            .with_module("@std/tmpl", TMPL_MODULE)
+            .with_module("@std/web", WEB_MODULE),
         ModuleLoader::default()
             .with_module("@std/fs", Fs)
             .with_module("@std/env", Env)
-            .with_module("@std/uuid", Uuid),
+            .with_module("@std/uuid", Uuid)
+            .with_module("@std/http", Http),
         ScriptLoader::default(),
     );
 
@@ -180,7 +230,7 @@ fn main() {
             println!("Memory used (bytes): {}", runtime.memory_usage().memory_used_size);
         }
     } else {
-        println!("Tonic REPL v0.1.0");
+        println!("Tonic REPL v0.3.0");
         
         let mut rl = Editor::<()>::new();
 

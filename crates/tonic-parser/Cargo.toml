@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
 name = "tonic-parser"
-version = "0.1.0"
-description = ""
+version = "0.3.0"
+description = "The Tonic Programming Language Parser"
 license = "MIT"

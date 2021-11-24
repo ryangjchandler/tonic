@@ -1,0 +1,7 @@
+use TemplateEngine from "@std/tmpl"
+
+let engine = TemplateEngine.init(__DIR__ + "/tmpls")
+
+println(engine.render("index.html", {
+    "name": "Ryan"
+}))
