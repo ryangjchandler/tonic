@@ -590,6 +590,44 @@ mod tests {
     }
 
     #[test]
+    fn closures() {
+        assert_eq!(parse(r##"
+        (fn () {
+
+        })
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Closure(vec![], vec![])
+            }
+        ]);
+
+        assert_eq!(parse(r##"
+            (fn (name) {
+
+            })
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Closure(vec![
+                    Parameter::new("name", None)
+                ], vec![])
+            }
+        ]);
+
+        assert_eq!(parse(r##"
+            (fn (name, age) {
+
+            })
+        "##), vec![
+            Statement::Expression {
+                expression: Expression::Closure(vec![
+                    Parameter::new("name", None),
+                    Parameter::new("age", None),
+                ], vec![])
+            }
+        ]);
+    }
+
+    #[test]
     fn uses() {
         assert_eq!(parse(r##"
             use File from "@std/fs"
