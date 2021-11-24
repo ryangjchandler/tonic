@@ -507,7 +507,7 @@ fn infix_binding_power(kind: &TokenKind) -> Option<(BindingPower, BindingPower)>
         TokenKind::EqualsEquals | TokenKind::NotEquals => (7, 8),
         TokenKind::And => (5, 6),
         TokenKind::Or => (3, 4),
-        TokenKind::Equals => (2, 1),
+        TokenKind::Equals | TokenKind::PlusEquals | TokenKind::MinusEquals | TokenKind::AsteriskEquals | TokenKind::SlashEquals => (2, 1),
         _ => return None
     })
 }

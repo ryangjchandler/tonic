@@ -39,6 +39,10 @@ pub enum Op {
     Equals,
     NotEquals,
     Assign,
+    AddAssign,
+    SubtractAssign,
+    MultiplyAssign,
+    DivideAssign,
     Not,
     And,
     Or,
@@ -63,6 +67,10 @@ impl From<TokenKind> for Op {
             TokenKind::And => Self::And,
             TokenKind::Or => Self::Or,
             TokenKind::Percent => Self::Mod,
+            TokenKind::PlusEquals => Self::AddAssign,
+            TokenKind::MinusEquals => Self::SubtractAssign,
+            TokenKind::AsteriskEquals => Self::MultiplyAssign,
+            TokenKind::SlashEquals => Self::DivideAssign,
             _ => todo!()
         }
     }
@@ -86,6 +94,10 @@ impl From<&TokenKind> for Op {
             TokenKind::And => Self::And,
             TokenKind::Or => Self::Or,
             TokenKind::Percent => Self::Mod,
+            TokenKind::PlusEquals => Self::AddAssign,
+            TokenKind::MinusEquals => Self::SubtractAssign,
+            TokenKind::AsteriskEquals => Self::MultiplyAssign,
+            TokenKind::SlashEquals => Self::DivideAssign,
             _ => todo!()
         }
     }
