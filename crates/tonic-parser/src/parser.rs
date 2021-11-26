@@ -118,14 +118,7 @@ impl<'p> Parser<'p> {
 
         let expression = self.expression(0)?;
 
-        match expression {
-            Expression::String(_) => r#type = Some(Type::String),
-            Expression::Number(_) => r#type = Some(Type::Number),
-            Expression::Bool(_) => r#type = Some(Type::Bool),
-            _ => (),
-        };
-
-        Ok(Statement::Let { identifier, r#type, initial: expression })
+        Ok(Statement::Let { identifier, initial: expression })
     }
 
     fn parse_fn(&mut self) -> ParserResult<Statement> {
@@ -459,12 +452,8 @@ impl<'p> Parser<'p> {
             self.read();
 
             let r#type = self.identifier()?;
-            
-            if ! Type::valid(&r#type) {
-                return Ok(None)
-            }
 
-            Ok(Some(Type::string(r#type)))
+            Ok(Some(r#type.into()))
         }
     }
 
@@ -691,7 +680,6 @@ mod tests {
         assert_eq!(parse("let name = 1"), vec![
             Statement::Let {
                 identifier: String::from("name"),
-                r#type: Some(Type::Number),
                 initial: Expression::Number(1.0),
             },
         ]);
@@ -699,7 +687,6 @@ mod tests {
         assert_eq!(parse("let name: number = 1"), vec![
             Statement::Let {
                 identifier: String::from("name"),
-                r#type: Some(Type::Number),
                 initial: Expression::Number(1.0),
             },
         ]);
@@ -716,11 +703,11 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("fn name() :: number {}"), vec![
+        assert_eq!(parse("fn name() :: Number {}"), vec![
             Statement::Function {
                 identifier: String::from("name"),
                 parameters: Vec::new(),
-                return_type: Some(Type::Number),
+                return_type: Some(Type::from("Number".to_owned())),
                 body: Vec::new(),
             }
         ]);
@@ -736,41 +723,41 @@ mod tests {
             }
         ]);
 
-        assert_eq!(parse("fn name(hello: string) {}"), vec![
+        assert_eq!(parse("fn name(hello: String) {}"), vec![
             Statement::Function {
                 identifier: String::from("name"),
                 parameters: vec![
-                    Parameter::new("hello", Some(Type::String)),
+                    Parameter::new("hello", Some(Type::from("String".to_owned()))),
                 ],
                 return_type: None,
                 body: Vec::new(),
             }
         ]);
 
-        assert_eq!(parse("fn name(hello: string) :: string {}"), vec![
+        assert_eq!(parse("fn name(hello: String) :: String {}"), vec![
             Statement::Function {
                 identifier: String::from("name"),
                 parameters: vec![
-                    Parameter::new("hello", Some(Type::String)),
+                    Parameter::new("hello", Some(Type::from("String".to_owned()))),
                 ],
-                return_type: Some(Type::String),
+                return_type: Some(Type::from("String".to_owned())),
                 body: Vec::new(),
             }
         ]);
 
         assert_eq!(parse(r##"
-            fn name(hello: string) :: string {
+            fn name(hello: String) :: String {
                 let name = "testing"
             }"##
         ), vec![
             Statement::Function {
                 identifier: String::from("name"),
                 parameters: vec![
-                    Parameter::new("hello", Some(Type::String)),
+                    Parameter::new("hello", Some(Type::from("String".to_owned()))),
                 ],
-                return_type: Some(Type::String),
+                return_type: Some(Type::from("String".to_owned())),
                 body: vec![
-                    Statement::Let { identifier: String::from("name"), r#type: Some(Type::String), initial: Expression::String("testing".into()) },
+                    Statement::Let { identifier: String::from("name"), initial: Expression::String("testing".into()) },
                 ],
             }
         ]);
@@ -811,7 +798,7 @@ mod tests {
             Statement::If {
                 condition: Expression::Bool(true),
                 then: vec![
-                    Statement::Let { identifier: String::from("age"), r#type: Some(Type::Number), initial: Expression::Number(1.0) }
+                    Statement::Let { identifier: String::from("age"), initial: Expression::Number(1.0) }
                 ],
                 otherwise: vec![],
             }
@@ -828,7 +815,7 @@ mod tests {
                 condition: Expression::Bool(true),
                 then: vec![],
                 otherwise: vec![
-                    Statement::Let { identifier: String::from("age"), r#type: Some(Type::Number), initial: Expression::Number(1.0) }
+                    Statement::Let { identifier: String::from("age"), initial: Expression::Number(1.0) }
                 ],
             }
         ]);
