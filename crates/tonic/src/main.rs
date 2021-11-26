@@ -17,6 +17,7 @@ struct Cli {
 const POLYFILL: &str = include_str!("../js/polyfill.js");
 const TMPL_MODULE: &str = include_str!("../js/tmpl.js");
 const WEB_MODULE: &str = include_str!("../dist/web.js");
+const JSON_MODULE: &str = include_str!("../js/json.js");
 
 pub fn println(vs: Rest<Value>) {
     fn stringify(v: Value) -> String {
@@ -175,7 +176,8 @@ fn main() {
             .with_module("@std/uuid")
             .with_module("@std/tmpl")
             .with_module("@std/http")
-            .with_module("@std/web"),
+            .with_module("@std/web")
+            .with_module("@std/json"),
         FileResolver::default()
             .with_path("./"),
     );
@@ -183,7 +185,8 @@ fn main() {
     let loader = (
         BuiltinLoader::default()
             .with_module("@std/tmpl", TMPL_MODULE)
-            .with_module("@std/web", WEB_MODULE),
+            .with_module("@std/web", WEB_MODULE)
+            .with_module("@std/json", JSON_MODULE),
         ModuleLoader::default()
             .with_module("@std/fs", Fs)
             .with_module("@std/env", Env)
