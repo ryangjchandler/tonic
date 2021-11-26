@@ -1,0 +1,5 @@
+use Lexer from "@std/token"
+
+let tokens = Lexer.tokenize("fn get() {}")
+
+println(tokens)
