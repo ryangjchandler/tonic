@@ -36,6 +36,55 @@ pub fn println(vs: Rest<Value>) {
 
 #[bind(module, public)]
 #[quickjs(bare)]
+mod token {
+    use tonic_compiler::{lex, TokenKind};
+
+    #[derive(Clone)]
+    #[quickjs(cloneable)]
+    pub struct Lexer {
+        source: String,
+    }
+
+    impl Lexer {
+        pub fn new(source: String) -> Self {
+            Self {
+                source
+            }
+        }
+
+        pub fn all(&self) -> Vec<(String, String)> {
+            let tokens = lex(&self.source[..]);
+            let mut js = Vec::new();
+
+            for token in tokens {
+                js.push(match token.kind {
+                    TokenKind::Identifier(s) => (s, "Identifier".to_owned()),
+                    TokenKind::String(s) => (s, "String".to_owned()),
+                    TokenKind::Number(n) => (n.to_string(), "Number".to_owned()),
+                    TokenKind::Fn => ("fn".to_owned(), "Fn".to_owned()),
+                    TokenKind::LeftParen => ("(".to_string(), "LeftParen".to_owned()),
+                    TokenKind::RightParen => (")".to_string(), "RightParen".to_owned()),
+                    TokenKind::LeftBracket => ("[".to_string(), "LeftBracket".to_owned()),
+                    TokenKind::RightBracket => ("]".to_string(), "RightBracket".to_owned()),
+                    TokenKind::LeftBrace => ("{".to_string(), "LeftBrace".to_owned()),
+                    TokenKind::RightBrace => ("}".to_string(), "RightBrace".to_owned()),
+                    _ => unimplemented!("{:?}", token.kind)
+                });
+            }
+
+            js
+        }
+
+        pub fn tokenize(source: String) -> Vec<(String, String)> {
+            let this = Self::new(source);
+
+            this.all()
+        }
+    }
+}
+
+#[bind(module, public)]
+#[quickjs(bare)]
 mod fs {
     #[derive(Clone)]
     #[quickjs(cloneable)]
@@ -175,7 +224,8 @@ fn main() {
             .with_module("@std/uuid")
             .with_module("@std/http")
             .with_module("@std/web")
-            .with_module("@std/json"),
+            .with_module("@std/json")
+            .with_module("@std/token"),
         FileResolver::default()
             .with_path("./"),
     );
@@ -188,7 +238,8 @@ fn main() {
             .with_module("@std/fs", Fs)
             .with_module("@std/env", Env)
             .with_module("@std/uuid", Uuid)
-            .with_module("@std/http", Http),
+            .with_module("@std/http", Http)
+            .with_module("@std/token", Token),
         ScriptLoader::default(),
     );
 
