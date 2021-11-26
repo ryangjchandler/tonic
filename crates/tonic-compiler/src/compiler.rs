@@ -39,8 +39,11 @@ impl Compiler {
                     if let Some(tonic_parser::Type(typed)) = &parameter.r#type {
                         body.compile_statement(Statement::Expression {
                             expression: Expression::Call(
-                                Box::new(Expression::Identifier(parameter.name.clone())),
-                                vec![Expression::Identifier(typed.clone())]
+                                Box::new(Expression::Identifier("__tonic_assert_type".to_owned())),
+                                vec![
+                                    Expression::Identifier(parameter.name.clone()),
+                                    Expression::Identifier(typed.clone())
+                                ]
                             )
                         });
                     }
