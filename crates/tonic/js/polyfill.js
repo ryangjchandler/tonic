@@ -38,6 +38,23 @@
     }
 })()
 
-function __tonic_assert_type() {
-    println("checking type!")
+const Map = Symbol("Map")
+
+class InvalidArgumentError extends Error {
+    /** @param message {string} */
+    constructor(message) {
+        super(message)
+
+        this.name = "InvalidArgumentError"
+    }
+}
+
+function __tonic_assert_type(value, type) {
+    if (type === Map && Object.getPrototypeOf(value) !== Object.prototype) {
+        throw new InvalidArgumentError("Got wrong type.")
+    }
+
+    if (value.constructor && value.constructor !== type) {
+        throw new InvalidArgumentError("Got wrong type.")
+    }
 }
