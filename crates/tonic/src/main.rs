@@ -3,6 +3,8 @@ use rquickjs::{BuiltinLoader, BuiltinResolver, FileResolver, Runtime, ModuleLoad
 use rustyline::{Editor, error::ReadlineError};
 use structopt::StructOpt;
 
+const VERSION: &str = "0.3.0";
+
 #[derive(Debug, StructOpt)]
 struct Cli {
     #[structopt(long = "debug", short = "d", help = "Output debug information (JS, memory usage, etc)")]
@@ -10,6 +12,9 @@ struct Cli {
 
     #[structopt(long = "raw", short = "r", help = "Execute the specified file as raw JavaScript")]
     raw: bool,
+
+    #[structopt(long = "version", short = "v", help = "Output the current version of Tonic.")]
+    version: bool,
 
     file: Option<String>,
 }
@@ -214,6 +219,12 @@ mod http {
 fn main() {
     let args = Cli::from_args();
 
+    if args.version {
+        println!("Tonic v{}", VERSION);
+        
+        std::process::exit(0);
+    }
+
     let runtime: Runtime = Runtime::new().unwrap();
     runtime.set_max_stack_size(256 * 2048);
 
@@ -281,7 +292,7 @@ fn main() {
             println!("Memory used (bytes): {}", runtime.memory_usage().memory_used_size);
         }
     } else {
-        println!("Tonic REPL v0.3.0");
+        println!("Tonic REPL v{}", VERSION);
         
         let mut rl = Editor::<()>::new();
 
