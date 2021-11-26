@@ -16,7 +16,7 @@ impl Compiler {
         }
     }
 
-    fn compile_statement(&mut self, statement: Statement) {
+    pub fn compile_statement(&mut self, statement: Statement) {
         match statement {
             Statement::Use { module, imports } => {
                 self.builder.import(imports, module);
@@ -34,6 +34,18 @@ impl Compiler {
                 let mut function = Function::new();
                 
                 let mut body = Compiler::new(body.into_iter());
+
+                for parameter in parameters.iter() {
+                    if let Some(tonic_parser::Type(typed)) = &parameter.r#type {
+                        body.compile_statement(Statement::Expression {
+                            expression: Expression::Call(
+                                Box::new(Expression::Identifier(parameter.name.clone())),
+                                vec![Expression::Identifier(typed.clone())]
+                            )
+                        });
+                    }
+                }
+
                 body.compile();
 
                 function
@@ -87,7 +99,7 @@ impl Compiler {
         }
     }
 
-    fn compile_expression(&mut self, expression: Expression) -> JsExpression {
+    pub fn compile_expression(&mut self, expression: Expression) -> JsExpression {
         use std::collections::HashMap;
 
         match expression {

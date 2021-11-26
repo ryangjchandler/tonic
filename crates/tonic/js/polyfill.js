@@ -37,3 +37,7 @@
         return this.includes(needle)
     }
 })()
+
+function __tonic_assert_type() {
+    println("checking type!")
+}

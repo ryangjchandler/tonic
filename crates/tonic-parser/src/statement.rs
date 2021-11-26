@@ -9,7 +9,6 @@ use crate::{Expression, Type};
 pub enum Statement {
     Let {
         identifier: String,
-        r#type: Option<Type>,
         initial: Expression,
     },
     Function {
