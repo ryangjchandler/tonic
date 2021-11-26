@@ -1,5 +1,5 @@
 use tonic_compiler::compile;
-use rquickjs::{BuiltinLoader, BuiltinResolver, FileResolver, Runtime, ModuleLoader, ScriptLoader, Context, Func, Value, Rest, bind, qjs::JSValue};
+use rquickjs::{BuiltinLoader, BuiltinResolver, FileResolver, Runtime, ModuleLoader, ScriptLoader, Context, Func, Value, Rest, bind};
 use rustyline::{Editor, error::ReadlineError};
 use structopt::StructOpt;
 

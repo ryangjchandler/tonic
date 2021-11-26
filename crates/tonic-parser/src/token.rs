@@ -16,6 +16,7 @@ pub enum TokenKind {
     Continue,
     Use,
     From,
+    Pub,
 
     True,
     False,

@@ -260,6 +260,7 @@ fn keyword(s: &str) -> Option<TokenKind> {
         "false" => TokenKind::False,
         "use" => TokenKind::Use,
         "from" => TokenKind::From,
+        "pub" => TokenKind::Pub,
         _ => return None
     })
 }
@@ -270,7 +271,7 @@ mod tests {
 
     #[test]
     fn keywords() {
-        matches("fn if else while return break continue let true false use from", vec![
+        matches("fn if else while return break continue let true false use from pub", vec![
             TokenKind::Fn,
             TokenKind::If,
             TokenKind::Else,
@@ -283,6 +284,7 @@ mod tests {
             TokenKind::False,
             TokenKind::Use,
             TokenKind::From,
+            TokenKind::Pub,
         ]);
     }
 

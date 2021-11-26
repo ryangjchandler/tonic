@@ -49,6 +49,15 @@ impl<'p> Parser<'p> {
 
     fn parse_statement(&mut self) -> ParserResult<Statement> {
         Ok(match self.current.kind {
+            TokenKind::Pub => {
+                self.read();
+                
+                let statement = self.parse_statement()?;
+
+                // TODO: Check that the statement is a function since those are
+                // the only valid exports.
+                Statement::Pub { export: Box::new(statement) }
+            },
             TokenKind::Let => self.parse_let()?,
             TokenKind::Fn => self.parse_fn()?,
             TokenKind::If => self.parse_if()?,
