@@ -16,7 +16,7 @@ struct Cli {
     #[structopt(long = "version", short = "v", help = "Output the current version of Tonic.")]
     version: bool,
 
-    file: Option<String>,
+    file: String,
 }
 
 const POLYFILL: &str = include_str!("../js/polyfill.js");
@@ -241,10 +241,27 @@ fn main() {
             .with_path("./"),
     );
 
+    let mut builtin: BuiltinLoader = BuiltinLoader::default()
+        .with_module("@std/web", WEB_MODULE)
+        .with_module("@std/json", JSON_MODULE);
+
+    let contents = read(args.file.clone());
+    let (compiled, imports) = if args.raw {
+        ([
+            POLYFILL.to_string(),
+            contents,
+        ].join("\n"), vec![])
+    } else {
+        let (compiled, imports) = compile(&contents[..]);
+
+        ([
+            POLYFILL.to_string(),
+            compiled,
+        ].join("\n"), imports)
+    };
+
     let loader = (
-        BuiltinLoader::default()
-            .with_module("@std/web", WEB_MODULE)
-            .with_module("@std/json", JSON_MODULE),
+        builtin,
         ModuleLoader::default()
             .with_module("@std/fs", Fs)
             .with_module("@std/env", Env)
@@ -257,70 +274,31 @@ fn main() {
     runtime.set_loader(resolver, loader);
 
     let context: rquickjs::Context = Context::full(&runtime).unwrap();
-    
-    if let Some(file) = args.file {
-        let contents = read(file.clone());
-        let compiled = [
-            POLYFILL.to_string(),
-            if args.raw { contents } else { compile(&contents[..]) }
-        ].join("\n");
+    let fqp = std::fs::canonicalize(args.file.clone()).unwrap();
+    let fqd = fqp.parent().unwrap();
 
-        let fqp = std::fs::canonicalize(file.clone()).unwrap();
-        let fqd = fqp.parent().unwrap();
-    
-        if args.debug {
-            println!("=== JS OUTPUT ===");
-            println!("{}", compiled);
-        }
+    if args.debug {
+        println!("=== JS OUTPUT ===");
+        println!("{}", compiled);
+    }
 
-        context.with(|ctx: rquickjs::Ctx| {
-            let glob = ctx.globals();
-    
-            glob.set("println", Func::from(println)).unwrap();
-            glob.set("__FILE__", fqp.to_str()).unwrap();
-            glob.set("__DIR__", fqd.to_str()).unwrap();
-    
-            if args.debug {
-                println!("=== EVAL ===");
-            }
-            
-            ctx.compile(file, compiled).unwrap();
-        });
-    
+    context.with(|ctx: rquickjs::Ctx| {
+        let glob = ctx.globals();
+
+        glob.set("println", Func::from(println)).unwrap();
+        glob.set("__FILE__", fqp.to_str()).unwrap();
+        glob.set("__DIR__", fqd.to_str()).unwrap();
+
         if args.debug {
-            println!("=== DEBUG ===");
-            println!("Memory used (bytes): {}", runtime.memory_usage().memory_used_size);
+            println!("=== EVAL ===");
         }
-    } else {
-        println!("Tonic REPL v{}", VERSION);
         
-        let mut rl = Editor::<()>::new();
+        ctx.compile(args.file, compiled).unwrap();
+    });
 
-        loop {
-            let line = rl.readline(">> ");
-
-            match line {
-                Ok(line) => {
-                    rl.add_history_entry(line.as_str());
-
-                    context.with(|ctx: rquickjs::Ctx| {
-                        let glob = ctx.globals();
-                
-                        glob.set("println", Func::from(println)).unwrap();
-                
-                        ctx.eval::<(), _>(line).unwrap();
-                    });
-                },
-                Err(ReadlineError::Interrupted | ReadlineError::Eof) => {
-                    println!("Exiting!");
-                    break
-                },
-                Err(e) => {
-                    println!("Error: {:?}", e);
-                    break
-                }
-            }
-        }
+    if args.debug {
+        println!("=== DEBUG ===");
+        println!("Memory used (bytes): {}", runtime.memory_usage().memory_used_size);
     }
 }
 

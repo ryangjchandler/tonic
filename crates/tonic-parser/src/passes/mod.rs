@@ -15,7 +15,7 @@ fn hoist_functions(ast: &mut Vec<Statement>) {
 }
 
 fn hoist_imports(ast: &mut Vec<Statement>) {
-    ast.sort_unstable_by(|a, _| if matches!(a, Statement::Pub { .. }) {
+    ast.sort_unstable_by(|a, _| if matches!(a, Statement::Use { .. }) {
         Ordering::Less
     } else {
         Ordering::Equal
