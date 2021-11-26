@@ -23,6 +23,11 @@ impl Builder {
         self
     }
 
+    pub fn export(&mut self) -> &mut Self {
+        self.source.push_str("export ");
+        self
+    }
+
     pub fn var(&mut self, var: Var) -> &mut Self {
         self.source.push_str(&var.to_string());
         self

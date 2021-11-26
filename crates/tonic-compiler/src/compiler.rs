@@ -18,6 +18,10 @@ impl Compiler {
 
     fn compile_statement(&mut self, statement: Statement) {
         match statement {
+            Statement::Pub { export } => {
+                self.builder.export();
+                self.compile_statement(*export);
+            },
             Statement::Use { module, imports } => {
                 self.builder.import(imports, module);
             },
