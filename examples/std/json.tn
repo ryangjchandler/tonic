@@ -1,0 +1,11 @@
+use JSON from "@std/json"
+
+let person = {
+    "name": "Ryan",
+    "age": 100,
+    "email": "tonic@tonic.tonic",
+}
+
+let encoded = JSON.encode(person)
+
+println("Encoded:", encoded)
