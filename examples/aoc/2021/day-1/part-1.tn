@@ -1,0 +1,22 @@
+use File from "@std/fs"
+
+let input = File.read(__DIR__ + "/input.txt").lines().map(fn (line) {
+    return line.toNumber()
+})
+
+let result = 0
+
+input.each(fn (n, i) {
+    if (i < 0) {
+        return false
+    }
+
+    let previous = input[i - 1]
+
+    if (n > previous) {
+        result += 1
+    }
+})
+
+println("Result: " + result)
+println("Finished!")
