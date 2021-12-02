@@ -1,0 +1,20 @@
+use File from "@std/fs"
+
+let input = File.read(__DIR__ + "/input.txt").lines().map(fn (line) {
+    return line.toNumber()
+})
+
+let result = input.reduce(fn (acc, n, i) {
+    if i == 0 {
+        return 0
+    }
+
+    if n > input[i - 1] {
+        return acc + 1
+    }
+
+    return acc
+}, 0)
+
+println("Result: " + result)
+println("Finished!")

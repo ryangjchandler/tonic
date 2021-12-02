@@ -1,0 +1,24 @@
+use File from "@std/fs"
+
+let input = File.read(__DIR__ + "/input.txt").lines().map(fn (line) {
+    return line.split(" ")
+})
+
+let result = input.reduce(fn (acc, instr) {
+    let command = instr[0]
+    let arg = instr[1].toNumber()
+
+    if command == "forward" {
+        acc.x += arg
+        acc.y += (acc.a * arg)
+    } else if command == "down" {
+        acc.a += arg
+    } else {
+        acc.a -= arg
+    }
+
+    return acc
+}, { "x": 0, "y": 0, "a": 0 })
+
+println("Result: " + (result.x * result.y))
+println("Finished!")

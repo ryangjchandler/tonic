@@ -11,6 +11,12 @@
         return this.length
     }
 
+    Array.prototype.each = function (callback) {
+        return this.forEach((n, i) => {
+            callback(n, i)
+        })
+    }
+
     Number.prototype.floor = function () {
         return Math.floor(this)
     }
