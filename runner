@@ -5,7 +5,16 @@ aoc() {
     cargo run -- ./examples/aoc/$1/day-$2/part-$3.tn
 }
 
+help() {
+    echo "Usage: runner <subcommand> [args]\n"
+    echo "Subcommands:"
+    echo "    aoc (year) (day) (part)    Run the Advent of Code solutions.\n"
+}
+
 case $subcommand in
+    "" | "-h" | "--help")
+        help
+        ;;
     *)
         shift
         ${subcommand} $@
