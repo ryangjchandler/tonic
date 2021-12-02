@@ -1,0 +1,12 @@
+#!/bin/sh
+subcommand=$1
+
+aoc() {
+    cargo run -- ./examples/aoc/$1/day-$2/part-$3.tn
+}
+
+case $subcommand in
+    *)
+        shift
+        ${subcommand} $@
+esac
